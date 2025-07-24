@@ -1,10 +1,10 @@
+import { RouterProvider } from 'react-router';
+import router from './routes';
 import './App.css';
 
 function App() {
   return (
-    <>
-      Chef Cirillo
-    </>
+    <RouterProvider router={router} />
   );
 }
 
