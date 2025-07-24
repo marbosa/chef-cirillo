@@ -1,0 +1,23 @@
+services:
+  client:
+      build: ./client
+      ports:
+        - "3000:3000"
+      volumes:
+        - ./client:/app
+        - node_modules_client:/app/node_modules
+      environment:
+        - CHOKIDAR_USEPOLLING=true
+
+  server:
+    build: ./server
+    ports: 
+      - "5000:5000"
+    volumes:
+      - ./server:/app
+      - node_modules_server:/app/node_modules
+  
+volumes:
+  node_modules_client:
+  node_modules_server:
+  
