@@ -1,0 +1,72 @@
+.select {
+    width: 40%;
+    height: 100%;
+    position: relative;
+    display: inline-block; 
+}
+
+.select__trigger {
+    width: 100% !important;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 1.75rem;
+    background-color: var(--bg);
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    border-radius: 4px;
+    width: 40%;
+    color: var(--text-secondary);
+    font-size: .875rem;
+}
+
+.select__trigger svg{
+    width: 0.875rem;
+    height: 0.875rem;
+    text-align: left;
+}
+
+.select__trigger span{
+    font-size: .875rem !important;
+    text-align: start;
+}
+
+.select__menu {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bg);
+    border-radius: 4px;
+    position: absolute;
+
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.2s ease;
+}
+
+.open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+    z-index: 10;
+}
+
+.select__menu li{
+    padding-inline: 0.5rem;
+    padding-block: 0.25rem;
+    border-radius: 4px;
+    color: var(--text-secondary);
+    font-size: .875rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.select__menu li:hover{
+  box-shadow: inset 0 0 0 1px var(--border);}
+
+.select__menu svg {
+    width: 14px;
+    height: 14px;
+}
