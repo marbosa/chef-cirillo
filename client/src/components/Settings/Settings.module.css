@@ -1,0 +1,54 @@
+.settings__container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;    
+    width: 100%;
+    /* height: 100%; */
+}
+
+.settings__section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.settings__section-title {
+    font-size: 20px;
+}
+
+.settings__section-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.settings__section-item > span {
+    font-size: 18px;
+    color: var(--text-secondary);
+    width: 50%;
+}
+
+.settings__section-item > input {
+    color: var(--text-secondary);
+    height: 1.75rem;
+    width: 30%;
+    width: 40%;
+
+    border-radius: 4px;
+    background-color: var(--bg);
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    text-align: center;
+}
+
+.settings__section-item > button {
+    height: 1.75rem;
+    background-color: var(--bg);
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    border-radius: 4px;
+    width: 30%;
+    width: 40%;
+
+    color: var(--text-secondary);
+}
