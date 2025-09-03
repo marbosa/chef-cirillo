@@ -1,0 +1,36 @@
+.numeric-input {
+    width: 40%;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+
+    color: var(--text-secondary);
+    height: 1.75rem;
+
+    border-radius: 4px;
+    background-color: var(--bg);
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    justify-content: space-between;
+    text-align: center;
+}
+
+.numeric-input__field {
+    width: 100%;
+}
+
+.numeric-input__actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.numeric-input__actions > button{
+    padding: 2px;
+}
+
+.numeric-input__actions > button  svg{
+    width: 10px;
+    height: 10px;
+}
