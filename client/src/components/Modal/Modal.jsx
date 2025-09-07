@@ -26,7 +26,7 @@ function Modal({ title, isOpen, onClose, children }) {
                 </div>
             </div>
         </div>,
-        document.getElementById('root')
+        document.getElementById('layout')
     );
 };
 
