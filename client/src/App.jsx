@@ -1,11 +1,17 @@
 import { RouterProvider } from 'react-router';
+import { useContext } from 'react';
+import { ThemeContext } from './context/ThemeContext';
 import router from './routes';
-import './App.css';
+import styles from './App.module.css';
 
 function App() {
-  return (
-    <RouterProvider router={router} />
-  );
-}
+    const {theme} = useContext(ThemeContext);
+
+    return (
+        <div id='layout' className={styles['layout']} data-theme={theme}>
+            <RouterProvider router={router} />
+        </div>
+    );  
+};
 
 export default App;

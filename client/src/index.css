@@ -1,4 +1,4 @@
-:root {  
+[data-theme='Default'] {  
     --bg: #FDECC2;
     --color-accent: #F5E1A4;
     --text-primary: #2E2E2E;
@@ -7,6 +7,28 @@
     --timer-short-break: #6BAF49;
     --timer-long-break: #F2C94C;
     --border: #F2C57C;
+}
+
+[data-theme='Light'] {
+    --bg: #F9F9F9;
+    --color-accent: #E0E0E0;      
+    --text-primary: #222222;
+    --text-secondary: #555555;
+    --timer-pomodoro: #FF6B6B;
+    --timer-short-break: #4CAF50;
+    --timer-long-break: #F2C94C;
+    --border: #CCCCCC;
+}
+
+[data-theme='Dark'] {
+    --bg: #1E1E1E;
+    --color-accent: #2E2E2E;
+    --text-primary: #E0E0E0;
+    --text-secondary: #B0B0B0;
+    --timer-pomodoro: #FF6B6B;
+    --timer-short-break: #4CAF50;
+    --timer-long-break: #F2C94C;
+    --border: #555555;
 }
 
 *,
@@ -26,7 +48,6 @@ body {
     line-height: 1;
     font-family: "Fredoka One", "Baloo 2", system-ui, sans-serif;
     text-rendering: optimizeLegibility;
-    background: var(--bg);
 }
 
 input,
@@ -97,10 +118,3 @@ q::after {
 html:focus-within {
     scroll-behavior: smooth;
 }
-
-input[type=number]::-webkit-inner-spin-button, 
-input[type=number]::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-

@@ -1,0 +1,5 @@
+.layout {
+    height: 100dvh;
+    width: 100vw;
+    background-color: var(--bg);
+}

@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { NumericInput, Select } from '../index';
+import { ThemeContext } from '../../context/ThemeContext';
 import styles from './Settings.module.css';
 
 function Settings() {
     const [alarm, setAlarm] = useState('Alarm 1');
-    const [theme, setTheme] = useState('Default');
+    const {theme, setTheme} = useContext(ThemeContext);
 
     const config = {
         pomodoro: 25,
