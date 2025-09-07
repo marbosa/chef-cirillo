@@ -18,7 +18,7 @@
     padding-block: 0.25rem;
 }
 
-.header__logo-button svg{
+.header__logo-button > svg{
     height: clamp(3rem, 2.6rem + 2vi, 5rem);
     width: auto;
 } 
@@ -38,12 +38,13 @@
     border: 1px solid var(--border);
 }
 
-.header__menu-item svg {
+.header__menu-item > svg {
     height: clamp(1.5rem, 1.45rem + 0.25vi, 1.75rem);
     width: clamp(1.5rem, 1.45rem + 0.25vi, 1.75rem);
+    color: var(--text-primary);
 }
 
-.header__menu-item span {
+.header__menu-item > span {
     position: absolute;
     bottom: -75%;
     left: 50%;
@@ -60,7 +61,7 @@
     transition: opacity 0.3s;
 }
 
-.header__menu-item span::after {
+.header__menu-item > span::after {
     content: "";
     position: absolute;
     bottom: 100%;
@@ -71,7 +72,7 @@
     border-color: transparent transparent black transparent;
 }
 
-.header__menu-item:hover span {
+.header__menu-item:hover > span {
     visibility: visible;
     opacity: 1;
 }
