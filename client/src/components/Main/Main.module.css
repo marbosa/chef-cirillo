@@ -42,23 +42,35 @@
     padding: 1rem clamp(0.5rem, 0.3rem + 1vi, 1.5rem);
 }
 
-.main__counter-action:nth-child(1) {
+.main__counter-action:nth-child(1):hover {
     background-color: var(--timer-pomodoro);
-
 }
 
-.main__counter-action:nth-child(2) {
+.main__counter-action:nth-child(2):hover {
     background-color: var(--timer-short-break);
 }
 
-.main__counter-action:nth-child(3) {
+.main__counter-action:nth-child(3):hover {
     background-color: var(--timer-long-break);
 }
 
 .main__counter-time {
-    font-size: clamp(5.5rem, 5.2rem + 1.5vi, 7rem);
-    border-radius: 8px;
-    color: var(--text-primary);
+    font-size: clamp(5rem, 4rem + 2vw, 7rem);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.digit {
+    display: inline-block;
+    width: 1ch;           
+    text-align: center;
+}
+
+.separator {
+    display: inline-block;
+    width: 0.5ch;
+    text-align: center;
 }
 
 .main__counter-info {
@@ -66,6 +78,38 @@
     font-size: clamp(1rem, 0.95rem + 0.25vi, 1.25rem);
     border-radius: 8px;
     color: var(--text-secondary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem
+}
+
+.main__counter-info {
+    position: relative;
+}
+
+.main__counter-info > button {
+    position: absolute;  
+    width: 6.25rem;
+    top: 50%;            
+    left: 50%;            
+    transform: translate(-50%, -50%); 
+    opacity: 0;          
+    pointer-events: none; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-accent);
+    padding: 0.25rem;
+    border-radius: 8px;
+    gap: 0.5rem;
+    z-index: 10;          
+    transition: opacity 0.2s; 
+}
+
+.main__counter-info:hover > button {
+    opacity: 1;
+    pointer-events: auto;
 }
 
 .main__phrase-box {
