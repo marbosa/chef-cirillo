@@ -1,10 +1,13 @@
-import { useState } from 'react';
 import { MusicIcon, PauseIcon, PlayIcon, TasksIcon } from '../../assets/icons/jsx';
 import styles from './Footer.module.css';
+import { PomodoroContext } from '../../contexts';
+import { usePomodoro } from '../../hooks';
+import { useContext } from 'react';
 
 function Footer() {
-    const [hasStarted, setHasStarted] = useState(false);
-
+    const { pomodoroControls } = usePomodoro();
+    const { isRunning } = useContext(PomodoroContext);
+    
     return (
         <footer className={styles['footer']}>
             <div className={styles['footer__content']}>
@@ -17,10 +20,10 @@ function Footer() {
                     </button>
                     <button  
                         className={styles['footer__menu-item']}
-                        onClick={() => setHasStarted(prevState => !prevState)}
+                        onClick={() => pomodoroControls.toggleTimer()}
                     >
-                        <span>{hasStarted ? 'Pause' : 'Play'}</span>
-                        {hasStarted ? <PauseIcon /> : <PlayIcon/>}
+                        <span>{isRunning ? 'Pause' : 'Play'}</span>
+                        {isRunning ? <PauseIcon /> : <PlayIcon/>}
                     </button>
                     <button 
                         className={styles['footer__menu-item']}
