@@ -1,25 +1,21 @@
-import { useContext, useState } from 'react';
+import { useContext } from 'react';
 import { NumericInput, Select } from '../index';
-import { ThemeContext } from '../../context/ThemeContext';
+import { ThemeContext, PomodoroContext } from '../../contexts/index';
 import styles from './Settings.module.css';
+import { useAlarm } from '../../hooks';
 
-function Settings() {
-    const [alarm, setAlarm] = useState('Alarm 1');
-    const {theme, setTheme} = useContext(ThemeContext);
+const Settings = () => {
+    const { theme, setTheme } = useContext(ThemeContext);
+    const { pomodoro, setPomodoro, autoStart, setAutoStart } = useContext(PomodoroContext);
+    const { alarmSettings, setAlarmSettings } = useAlarm();
 
-    const config = {
+    const defaultPomodoro = {
         pomodoro: 25,
         break: 5,
-        longBreak: 15,
-        longBreakIntervalN: 4
+        longBreak: 10,
+        longBreakInterval: 4
     };
 
-    const [pomodoroTime, setPomodoroTime] = useState(config.pomodoro);
-    const [breakTime, setBreakTime] = useState(config.break);
-    const [longBreakTime, setLongBreakTime] = useState(config.longBreak);
-    const [longBreakInterval, setLongBreakInterval] = useState(config.longBreakIntervalN);
-
-    
     return (
         <div className={styles['settings__container']}>
             <section className={styles['settings__section']}>
@@ -29,56 +25,57 @@ function Settings() {
 
                     <NumericInput 
                         name={'pomodoro'} 
-                        value={pomodoroTime}
+                        value={pomodoro.pomodoro}
                         minValue={0}
                         maxValue={300}
-                        onChange={val => setPomodoroTime(val)}
+                        onChange={val => setPomodoro({ ...pomodoro, pomodoro: val})}
                     />
                 </div>
                 <div className={styles['settings__section-item']}>
                     <span>Break</span>
                     <NumericInput 
                         name={'break'} 
-                        value={breakTime}
+                        value={pomodoro.break}
                         minValue={0}
                         maxValue={300}
-                        onChange={val => setBreakTime(val)}
+                        onChange={val => setPomodoro({ ...pomodoro, break: val})}
                     />
                 </div>
                 <div className={styles['settings__section-item']}>
                     <span>Long Break</span>
                     <NumericInput 
                         name={'longBreak'} 
-                        value={longBreakTime}
+                        value={pomodoro.longBreak}
                         minValue={0}
                         maxValue={300}
-                        onChange={val => setLongBreakTime(val)}
+                        onChange={val => setPomodoro({ ...pomodoro, longBreak: val})}
                     />
                 </div>
                 <div className={styles['settings__section-item']}>
                     <span>Long Break Interval</span>
                     <NumericInput 
                         name={'longBreakInterval'} 
-                        value={longBreakInterval}
+                        value={pomodoro.longBreakInterval}
                         minValue={0}
                         maxValue={30}
-                        onChange={val => setLongBreakInterval(val)}
+                        onChange={val => setPomodoro({ ...pomodoro, longBreakInterval: val})}
                     />
                 </div>
                 <div className={styles['settings__section-item']}>
                     <span>Auto start</span>
-                    <button>On</button>
+                    <button
+                        onClick={() => setAutoStart(prev => !prev)}
+                    >
+                        {autoStart ? 'On' : 'Off'}
+                    </button>
                 </div>
                 <div className={styles['settings__section-item']}>
                     <span>Reset</span>
                     <button 
-                        onClick={() => {
-                            setPomodoroTime(config.pomodoro);
-                            setBreakTime(config.break);
-                            setLongBreakTime(config.longBreak);
-                            setLongBreakInterval(config.longBreakIntervalN);
-                        }}
-                    >Ok</button>
+                        onClick={() => setPomodoro(defaultPomodoro)}
+                    >
+                        Ok
+                    </button>
                 </div>
             </section>
 
@@ -88,14 +85,41 @@ function Settings() {
                 <div className={styles['settings__section-item']}>
                     <span>Sound</span>
                     <Select 
-                        options={['Alarm 1', 'Alarm 2', 'None']}
-                        defaultValue={alarm}
-                        onChange={setAlarm}
+                        options={alarmSettings.alarmOptions}
+                        defaultValue={alarmSettings.alarmSelected}
+                        onChange={(opt) => {
+                            setAlarmSettings({
+                                ...alarmSettings,
+                                alarmSelected: opt
+                            });
+                        }}
                     />
                 </div>
                 <div className={styles['settings__section-item']}>
                     <span>Volume</span>
-                    <input type='range' min='0' max='100'/>
+                    <input 
+                        name='volume'
+                        type='range' 
+                        min='0' 
+                        max='100'
+                        value={alarmSettings.volume}
+                        onChange={e => {
+                            setAlarmSettings({
+                                ...alarmSettings,
+                                volume: Number(e.target.value)
+                            });
+                        }}
+                />
+                </div>
+                <div className={styles['settings__section-item']}>
+                    <span>Repeat</span>
+                    <NumericInput 
+                        name={'repeat'} 
+                        value={alarmSettings.repeat}
+                        minValue={0}
+                        maxValue={10}
+                        onChange={val => setAlarmSettings({ ...alarmSettings, repeat: val})}
+                    />
                 </div>
             </section>
 
@@ -103,7 +127,7 @@ function Settings() {
                 <h2 className={styles['settings__section-title']}>Theme</h2>
                 
                 <div className={styles['settings__section-item']}>
-                    <span>Chose theme</span>
+                    <span>Choose theme</span>
                     <Select 
                         options={['Default', 'Light', 'Dark']}
                         defaultValue={theme}
