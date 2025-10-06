@@ -1,4 +1,4 @@
-import { Modal, Settings } from './../index';
+import { Modal, Profile, Settings } from './../index';
 import { LogoIcon, ProfileIcon, SettingsIcon } from '../../assets/icons/jsx';
 import styles from './Header.module.css';
 import { useState } from 'react';
@@ -18,13 +18,13 @@ function Header() {
         });
     };
 
-    // const openProfile = () => {
-    //     setModalConfig({
-    //         isOpen: true,
-    //         title: 'Profile',
-    //         children: <Profile />
-    //     });
-    // };
+    const openProfile = () => {
+        setModalConfig({
+            isOpen: true,
+            title: 'Profile',
+            children: <Profile />
+        });
+    };
 
     const closeModal = () => {
         setModalConfig(prev => ({ ...prev, isOpen: false}));
@@ -48,6 +48,7 @@ function Header() {
                     <button 
                         className={styles['header__menu-item']} 
                         aria-label='Profile'
+                        onClick={() => openProfile()}
                     >
                         <span>Profile</span>
                         <ProfileIcon/>
