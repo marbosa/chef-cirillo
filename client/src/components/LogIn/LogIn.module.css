@@ -1,0 +1,66 @@
+.form {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	gap: 2rem;
+}
+
+.inputs-group {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+
+.inputs-field {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.inputs-field > input {
+	height: 2.25rem;
+	background-color: var(--bg);
+	padding-left: 0.75rem;
+	padding-right: 0.75rem;
+	border-radius: 4px;
+	width: 100%;
+}
+
+.input-alarm {
+	font-size: 0.875rem;
+	color: red;
+	font-weight: 200;
+	display: none;
+}
+
+.active {
+	display: block;
+}
+
+.form-actions {
+	align-self: center;
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+	width: 100%;
+}
+
+.form-actions > button {
+	height: 2.5rem;
+	background-color: var(--bg);
+	border-radius: 4px;
+	width: 100%;
+}
+
+.form-feedback {
+	font-size: 0.875rem;
+	font-weight: 200;
+}
+
+.button-cancel {
+	background-color: #C83A2A !important;
+}
+
+.button-confirm {
+	background-color: #6B8E23 !important;
+}
