@@ -1,11 +1,14 @@
 import http from 'http';
 import dotenv from 'dotenv';
-
+import { applyHeaders, handlePreflight } from './config/headers.js';
 dotenv.config();
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT;
 
 const server = http.createServer((req, res) => {
+    applyHeaders(res);
+    if (handlePreflight(req, res)) return;
+
     if (req.url === '/') {
         res.writeHead(200, { 'Content-Type': 'text/plain'});
         res.end('Chef Cirillo');
