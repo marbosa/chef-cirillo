@@ -1,6 +1,7 @@
 import http from 'http';
 import dotenv from 'dotenv';
 import { applyHeaders, handlePreflight } from './config/headers.js';
+
 dotenv.config();
 
 const PORT = process.env.PORT;
