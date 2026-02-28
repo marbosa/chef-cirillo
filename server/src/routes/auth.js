@@ -76,5 +76,6 @@ router.addRoute('POST', '/auth/login', (req, res) => {
 });
 
 router.addRoute('POST', '/auth/logout', (req, res) => {
-    res.end('logout');
+    res.writeHead(200); 
+    res.end(JSON.stringify({ message: 'Logout successful' }));                
 });
