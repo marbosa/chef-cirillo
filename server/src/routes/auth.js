@@ -1,6 +1,7 @@
 import { router } from '../router.js';
 import pool from '../config/database.js';
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
 router.addRoute('POST', '/auth/register', (req, res) => {
     let body = '';
@@ -22,9 +23,20 @@ router.addRoute('POST', '/auth/register', (req, res) => {
         };
 
         try {
-            await pool.query( 'INSERT INTO users (email, password_hash) VALUES ($1, $2)', [user.email, user.passwordHash]);
+            const result = await pool.query(
+                'INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email', 
+                [user.email, user.passwordHash]
+            );
+            const newUser = result.rows[0];
+
+            const token = jwt.sign(
+                { id: newUser.id, email: newUser.email },
+                process.env.JWT_SECRET,
+                { expiresIn:  process.env.JWT_EXPIRES_IN }
+            );
+
             res.writeHead(201);
-            res.end(JSON.stringify({ message: 'Account created' }));
+            res.end(JSON.stringify({ message: 'Account created', token }));
         } catch(err) {
             if(err.code === '23505') {
                 res.writeHead(409);
@@ -62,8 +74,16 @@ router.addRoute('POST', '/auth/login', (req, res) => {
             }
 
             if(await bcrypt.compare(body.password, user.password_hash)) {
+                
+                const token = jwt.sign(
+                    { id: user.id, email: user.email },
+                    process.env.JWT_SECRET,
+                    { expiresIn:  process.env.JWT_EXPIRES_IN }
+                );
+
                 res.writeHead(200); 
-                res.end(JSON.stringify({ message: 'Login successful' }));                
+                res.end(JSON.stringify({ message: 'Login successful', token })); 
+
             } else {
                 res.writeHead(400);
                 res.end(JSON.stringify({ error: 'Invalid credentials'}));
