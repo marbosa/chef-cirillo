@@ -18,3 +18,19 @@ router.addRoute('GET', '/users/me', authenticate, async (req, res) => {
         res.end(JSON.stringify({ error: 'Could not fetch user'}));
     }
 });
+
+router.addRoute('DELETE', '/users/me', authenticate, async (req, res) => {
+    const user = req.user;
+
+    try {
+        await pool.query(
+            'DELETE FROM users WHERE id = $1',
+            [user.id]
+        );
+        res.writeHead(200);
+        res.end(JSON.stringify({ message: 'User deleted'}));
+    } catch {
+        res.writeHead(500);
+        res.end(JSON.stringify({ error: 'Could not delete user'}));
+    }    
+});
