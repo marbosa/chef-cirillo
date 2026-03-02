@@ -1,6 +1,7 @@
-import { router } from '../router.js';
+import bcrypt from 'bcrypt';
 import pool from '../config/database.js';
 import { authenticate } from '../middlewares/authenticate.js';
+import { router } from '../router.js';
 
 router.addRoute('GET', '/users/me', authenticate, async (req, res) => {
     const user = req.user;
@@ -33,4 +34,106 @@ router.addRoute('DELETE', '/users/me', authenticate, async (req, res) => {
         res.writeHead(500);
         res.end(JSON.stringify({ error: 'Could not delete user'}));
     }    
+});
+
+router.addRoute('PATCH', '/users/me', authenticate, async (req, res) => {
+    const user = req.user;
+    let body = '';
+
+    req.on('data', (chunk) => { body += chunk; });
+
+    req.on('end', async () => {
+        try {
+            body = JSON.parse(body);
+
+            if(!body.newEmail) {
+                res.writeHead(400);
+                res.end(JSON.stringify({ error: 'New email are required'}));
+                return;
+            }
+
+            if(body.newEmail === user.email) {
+                res.writeHead(400);
+                res.end(JSON.stringify({ error: 'New email must be different' }));
+                return;
+            }
+
+            const result = await pool.query(
+                'UPDATE users SET email = $1 WHERE id = $2 RETURNING id, email',
+                [body.newEmail, user.id]
+            );
+
+            if (result.rows.length === 0) {
+                res.writeHead(404);
+                res.end(JSON.stringify({ error: 'User not found'}));
+                return;
+            }
+
+            res.writeHead(200);
+            res.end(JSON.stringify({ message: 'Email changed'}));
+        } catch {
+            res.writeHead(500);
+            res.end(JSON.stringify({ error: 'Could not change email'}));
+        }
+    });
+});
+
+router.addRoute('PATCH', '/users/me/password', authenticate, async (req, res) => {
+    const user = req.user;
+    let rawBody = '';
+
+    req.on('data', (chunk) => { rawBody += chunk; });
+
+    req.on('end', async () => {
+        try {
+            const body = JSON.parse(rawBody);
+
+            if(!body.newPassword || !body.password) {
+                res.writeHead(400);
+                res.end(JSON.stringify({ error: 'Passwords are required'}));
+                return;
+            }
+
+            const result = await pool.query(
+                'SELECT password_hash FROM users WHERE id = $1',
+                [user.id]
+            );
+
+            if (result.rows.length === 0) {
+                res.writeHead(404);
+                res.end(JSON.stringify({ error: 'User not found' }));
+                return;
+            }
+
+            const { password_hash } = result.rows[0];
+
+            const passwordMatch = await bcrypt.compare(body.password, password_hash);            
+            if (!passwordMatch) {
+                res.writeHead(401);
+                res.end(JSON.stringify({ error: 'Incorrect password' }));
+                return;
+            }
+
+            const isSamePassword = await bcrypt.compare(body.newPassword, password_hash);
+
+            if (isSamePassword) {
+                res.writeHead(400);
+                res.end(JSON.stringify({ error: 'New password must be different' }));
+                return;
+            }
+
+            const newHash = await bcrypt.hash(body.newPassword, 10);
+
+            await pool.query(
+                'UPDATE users SET password_hash = $1 WHERE id = $2',
+                [newHash, user.id]
+            );
+
+            res.writeHead(200);
+            res.end(JSON.stringify({ message: 'Password changed successfully'}));                
+        } catch {
+            res.writeHead(500);
+            res.end(JSON.stringify({ error: 'Invalid request'}));
+        }
+    });
 });
