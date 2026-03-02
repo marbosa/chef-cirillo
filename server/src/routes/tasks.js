@@ -2,9 +2,18 @@ import pool from '../config/database.js';
 import { authenticate } from '../middlewares/authenticate.js';
 import { router } from '../router.js';
 
-// router.addRoute('GET', '/tasks', authenticate, (req, res) => {
+router.addRoute('GET', '/tasks', authenticate, async (req, res) => {
+    const user = req.user;
 
-// });
+    try {
+        const result = await pool.query('SELECT * FROM tasks WHERE user_id = $1', [user.id]);
+        res.writeHead(200);
+        res.end(JSON.stringify({ tasks: result.rows }));
+    } catch {
+        res.writeHead(400);
+        res.end(JSON.stringify({ error: 'Could not fetch tasks' }));
+    }
+});
 
 router.addRoute('POST', '/tasks', authenticate, (req, res) => {
     const user = req.user;
@@ -51,10 +60,15 @@ router.addRoute('POST', '/tasks', authenticate, (req, res) => {
     });
 });
 
-// router.addRoute('PATCH', '/tasks', authenticate, (req, res) => {
+// router.addRoute('GET', '/tasks/:id', authenticate, (req, res) => {
 
 // });
 
-// router.addRoute('DELETE', '/tasks', authenticate, (req, res) => {
+// router.addRoute('PATCH', '/tasks/:id', authenticate, (req, res) => {
 
 // });
+
+// router.addRoute('DELETE', '/tasks/:id', authenticate, (req, res) => {
+
+// });
+
