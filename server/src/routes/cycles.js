@@ -26,10 +26,6 @@ router.addRoute('PATCH', '/cycles/:id', authenticate, (req, res) => {
     let rawBody = '';
     const cycle_id = req.params.id;
 
-            // "ended_at": null,
-            // "pomodoros_completed": 0,
-            // "was_reset": false
-
     req.on('data', (chunk) => { rawBody += chunk; });
     req.on('end', async () => {
         try {
