@@ -22,6 +22,82 @@ router.addRoute('POST', '/cycles', authenticate, async (req, res) => {
     }
 });
 
+router.addRoute('PATCH', '/cycles/:id', authenticate, (req, res) => {
+    let rawBody = '';
+    const cycle_id = req.params.id;
+
+            // "ended_at": null,
+            // "pomodoros_completed": 0,
+            // "was_reset": false
+
+    req.on('data', (chunk) => { rawBody += chunk; });
+    req.on('end', async () => {
+        try {
+            const fields = [];
+            const values = [];
+            const user_id = req.user.id;
+            const body = JSON.parse(rawBody);
+
+            if (body.ended_at !== undefined) {
+                try {
+                    const date = new Date(body.ended_at);
+                    if (isNaN(date.getTime())) throw new Error();
+                    fields.push(`ended_at = $${fields.length + 1}`);
+                    values.push(date);
+                } catch {
+                    res.writeHead(400);
+                    res.end(JSON.stringify({ error: 'Invalid date format' }));
+                    return;
+                }
+            }
+
+            if (body.pomodoros_completed !== undefined) {
+                if (isNaN(Number(body.pomodoros_completed)) || Number(body.pomodoros_completed) < 0) {
+                    res.writeHead(400);
+                    res.end(JSON.stringify({ error: 'Pomodoros_completed need be at least positive numbers' }));
+                    return;
+                }
+                fields.push(`pomodoros_completed = $${ fields.length + 1 }`);
+                values.push(body.pomodoros_completed);
+            }
+
+            if (body.was_reset !== undefined) {
+                if (typeof body.was_reset !== 'boolean') {
+                    res.writeHead(400);
+                    res.end(JSON.stringify({ error: 'was_reset need be booleand' }));
+                    return;
+                }
+                fields.push(`was_reset = $${ fields.length + 1 }`);
+                values.push(body.was_reset);
+            }
+
+            if (fields.length === 0) {
+                res.writeHead(400);
+                res.end(JSON.stringify({ error: 'no fields to update' }));
+                return;
+            }
+
+            const result = await pool.query(
+                `UPDATE cycles SET ${fields.join(', ')} WHERE id = $${fields.length + 1} AND user_id = $${fields.length + 2} RETURNING *`,
+                [...values, cycle_id, user_id]
+            );
+
+            
+            if (result.rows.length === 0) {
+                res.writeHead(404);
+                res.end(JSON.stringify({ error: 'Cycle not updates' }));
+                return;
+            }
+
+            res.writeHead(200);
+            res.end(JSON.stringify({ message: 'Cycle updated', task: result.rows[0] }));
+        } catch {
+            res.writeHead(500);
+            res.end(JSON.stringify({ error: 'error' }));
+        }
+    });
+});
+
 router.addRoute('GET', '/cycles/history', authenticate, async (req, res) => {
     try {
         const user_id = req.user.id;
