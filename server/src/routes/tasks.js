@@ -74,11 +74,21 @@ router.addRoute('POST', '/tasks', authenticate, (req, res) => {
     });
 });
 
+router.addRoute('DELETE', '/tasks/:id', authenticate, async (req, res) => {
+    const id = req.params.id;
+    const user = req.user;
+
+    try {
+        await pool.query('DELETE FROM tasks WHERE id = $1 AND user_id = $2', [id, user.id]);
+        res.writeHead(200);
+        res.end(JSON.stringify({ message: 'Task deleted' }));
+    } catch {
+        res.writeHead(500);
+        res.end(JSON.stringify({ error: 'Could not fetch tasks' }));
+    }
+});
+
 // router.addRoute('PATCH', '/tasks/:id', authenticate, (req, res) => {
-
-// });
-
-// router.addRoute('DELETE', '/tasks/:id', authenticate, (req, res) => {
 
 // });
 
