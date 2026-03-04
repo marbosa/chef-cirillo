@@ -94,3 +94,17 @@ router.addRoute('POST', '/sessions', authenticate, (req, res) => {
         }
     });
 });
+
+router.addRoute('GET', '/sessions/history', authenticate, async (req, res) => {
+    try {
+        const user_id = req.user.id;
+
+        const result = await pool.query('SELECT * FROM pomodoro_sessions WHERE user_id = $1', [user_id]);
+
+        res.writeHead(200);
+        res.end(JSON.stringify({ message: 'sessions founds', sessions: result.rows }));
+    } catch {
+        res.writeHead(500);
+        res.end(JSON.stringify({ message: 'not found sessions'}));
+}
+});
