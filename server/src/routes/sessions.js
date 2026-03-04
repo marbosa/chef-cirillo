@@ -3,15 +3,15 @@ import { router } from '../router.js';
 import { authenticate } from '../middlewares/authenticate.js';
 
 // CREATE TABLE pomodoro_sessions (
-//   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-//   user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-//   cycle_id UUID REFERENCES cycles(id) ON DELETE SET NULL,
-//   type VARCHAR(20) NOT NULL,
-//   started_at TIMESTAMPTZ NOT NULL,
-//   ended_at TIMESTAMPTZ,
-//   duration_seconds INT NOT NULL,
-//   completed BOOLEAN DEFAULT false,
-//   cycle_number INT DEFAULT 1
+//   id UUID PRIMARY KEY DEFAULT gen_random_uuid(), nao atualiza
+//   user_id UUID REFERENCES users(id) ON DELETE CASCADE, nao atualiza
+//   cycle_id UUID REFERENCES cycles(id) ON DELETE SET NULL, nao atualiza
+//   type VARCHAR(20) NOT NULL, atualiza
+//   started_at TIMESTAMPTZ NOT NULL, nao atualiza
+//   ended_at TIMESTAMPTZ, atualiza
+//   duration_seconds INT NOT NULL, atualiza
+//   completed BOOLEAN DEFAULT false, atualiza
+//   cycle_number INT DEFAULT 1 atualiza
 // );
 
 router.addRoute('POST', '/sessions', authenticate, (req, res) => {
@@ -107,4 +107,63 @@ router.addRoute('GET', '/sessions/history', authenticate, async (req, res) => {
         res.writeHead(500);
         res.end(JSON.stringify({ message: 'not found sessions'}));
 }
+});
+
+router.addRoute('PATCH', '/sessions/:id', authenticate, async (req, res) => {
+    let rawBody = '';
+    req.on('data', (chunk) => rawBody += chunk);
+
+    req.on('end', async () => {
+        try {
+            const fields = [];
+            const values = [];
+            const id = req.params.id;
+            const user_id = req.user.id;
+            const body = JSON.parse(rawBody);
+
+            if (body.ended_at !== undefined) {
+                const date = new Date(body.ended_at);
+                if (isNaN(date.getTime())) {
+                    res.writeHead(400);
+                    res.end(JSON.stringify({ error: 'Invalid date format' }));
+                    return;
+                }            
+                fields.push(`ended_at = $${fields.length + 1}`);
+                values.push(date);
+            }
+
+            if (body.completed !== undefined) {
+                if (typeof body.completed !== 'boolean') {
+                    res.writeHead(400);
+                    res.end(JSON.stringify({ error: 'Invalid completed format' }));
+                    return;
+                }
+                    fields.push(`completed = $${ fields.length + 1 }`);
+                    values.push(body.completed);
+            }
+
+            if (fields.length === 0) {
+                res.writeHead(400);
+                res.end(JSON.stringify({ error: 'No fields to update' }));
+                return;
+            }
+
+            const result = await pool.query(
+                `UPDATE pomodoro_sessions SET ${fields.join(', ')} WHERE id = $${fields.length + 1} AND user_id = $${fields.length + 2} RETURNING *`,
+                [...values, id, user_id]
+            );
+
+            if (result.rows.length === 0){
+                res.writeHead(404);
+                res.end(JSON.stringify({ error: 'session not found'}));
+                return;
+            }
+
+            res.writeHead(200);
+            res.end(JSON.stringify({ message: 'Session updated successfully', session: result.rows}));
+        } catch {
+            res.writeHead(500);
+            res.end(JSON.stringify({ error: 'Could not update session' }));
+        }
+    });
 });
