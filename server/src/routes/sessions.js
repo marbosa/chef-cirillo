@@ -204,3 +204,48 @@ router.addRoute('POST', '/sessions/:id/tasks', authenticate, (req, res) => {
         }
     });
 });
+
+router.addRoute('DELETE', '/sessions/:sessionId/tasks/:taskId', authenticate, async (req, res) => {
+    try {
+        const session_id = req.params.sessionId;
+        const task_id = req.params.taskId;
+        const user_id = req.user.id;
+
+        if (!task_id) {
+            res.writeHead(400);
+            res.end(JSON.stringify({ error: 'task_id is required' }));
+            return;
+        }
+
+        const sessionExist = await pool.query(
+            'SELECT id FROM pomodoro_sessions WHERE id = $1 AND user_id = $2',
+            [session_id, user_id]
+        );
+        if (sessionExist.rows.length === 0) {
+            res.writeHead(404);
+            res.end(JSON.stringify({ error: 'Session not found' }));
+            return;
+        }
+
+        const taskExist = await pool.query(
+            'SELECT id FROM tasks WHERE id = $1 AND user_id = $2',
+            [task_id, user_id]
+        );
+        if (taskExist.rows.length === 0) {
+            res.writeHead(404);
+            res.end(JSON.stringify({ error: 'Task not found' }));
+            return;
+        }
+
+        await pool.query(
+            'DELETE FROM session_tasks WHERE session_id = $1 AND task_id = $2',
+            [session_id, task_id]
+        );
+
+        res.writeHead(200);
+        res.end(JSON.stringify({ message: 'Task unlinked from session'}));
+    } catch {
+        res.writeHead(500);
+        res.end(JSON.stringify({ error: 'Could not link task to session' }));
+    }
+});
