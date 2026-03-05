@@ -246,6 +246,6 @@ router.addRoute('DELETE', '/sessions/:sessionId/tasks/:taskId', authenticate, as
         res.end(JSON.stringify({ message: 'Task unlinked from session'}));
     } catch {
         res.writeHead(500);
-        res.end(JSON.stringify({ error: 'Could not link task to session' }));
+        res.end(JSON.stringify({ error: 'Could not unlink task from session' }));
     }
 });
