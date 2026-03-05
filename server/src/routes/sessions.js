@@ -2,18 +2,6 @@ import pool from '../config/database.js';
 import { router } from '../router.js';
 import { authenticate } from '../middlewares/authenticate.js';
 
-// CREATE TABLE pomodoro_sessions (
-//   id UUID PRIMARY KEY DEFAULT gen_random_uuid(), nao atualiza
-//   user_id UUID REFERENCES users(id) ON DELETE CASCADE, nao atualiza
-//   cycle_id UUID REFERENCES cycles(id) ON DELETE SET NULL, nao atualiza
-//   type VARCHAR(20) NOT NULL, atualiza
-//   started_at TIMESTAMPTZ NOT NULL, nao atualiza
-//   ended_at TIMESTAMPTZ, atualiza
-//   duration_seconds INT NOT NULL, atualiza
-//   completed BOOLEAN DEFAULT false, atualiza
-//   cycle_number INT DEFAULT 1 atualiza
-// );
-
 router.addRoute('POST', '/sessions', authenticate, (req, res) => {
     let rawBody = '';
     req.on('data', (chunk) => { rawBody += chunk ;});
@@ -164,6 +152,55 @@ router.addRoute('PATCH', '/sessions/:id', authenticate, async (req, res) => {
         } catch {
             res.writeHead(500);
             res.end(JSON.stringify({ error: 'Could not update session' }));
+        }
+    });
+});
+
+router.addRoute('POST', '/sessions/:id/tasks', authenticate, (req, res) => {
+    let rawBody = '';
+    req.on('data', (chunk) => { rawBody += chunk; });
+    req.on('end', async () => {
+        try {
+            const body = JSON.parse(rawBody);
+            const id = req.params.id;
+            const user_id = req.user.id;
+
+            if (!body.task_id) {
+                res.writeHead(400);
+                res.end(JSON.stringify({ error: 'task_id is required' }));
+                return;
+            }
+
+            const sessionExist = await pool.query(
+                'SELECT id FROM pomodoro_sessions WHERE id = $1 AND user_id = $2',
+                [id, user_id]
+            );
+            if (sessionExist.rows.length === 0) {
+                res.writeHead(404);
+                res.end(JSON.stringify({ error: 'Session not found' }));
+                return;
+            }
+
+            const taskExist = await pool.query(
+                'SELECT id FROM tasks WHERE id = $1 AND user_id = $2',
+                [body.task_id, user_id]
+            );
+            if (taskExist.rows.length === 0) {
+                res.writeHead(404);
+                res.end(JSON.stringify({ error: 'Task not found' }));
+                return;
+            }
+
+            const result = await pool.query(
+                'INSERT INTO session_tasks (session_id, task_id) VALUES ($1, $2) RETURNING *',
+                [id, body.task_id]
+            );
+
+            res.writeHead(201);
+            res.end(JSON.stringify({ message: 'Task linked to session', result: result.rows[0] }));
+        } catch {
+            res.writeHead(500);
+            res.end(JSON.stringify({ error: 'Could not link task to session' }));
         }
     });
 });
