@@ -5,7 +5,8 @@ const addRoute = (method, path, ...handlers) => {
 };
 
 const dispatch = (req, res) => {
-    const urlParts = req.url.split('/');
+    const [rawUrl, rawParams] = req.url.split('?');
+    const urlParts = rawUrl.split('/');
 
     const route = routes.find(route => {
         if (route.method !== req.method) return false;
@@ -32,6 +33,8 @@ const dispatch = (req, res) => {
         }
     });
 
+    req.query = Object.fromEntries(new URLSearchParams(rawParams || ''));
+    
     let index = 0;
     const next = () => {
         const handler = route.handlers[index];
