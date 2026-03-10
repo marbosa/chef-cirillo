@@ -83,19 +83,19 @@ router.addRoute('POST', '/sessions', authenticate, (req, res) => {
     });
 });
 
-router.addRoute('GET', '/sessions/history', authenticate, async (req, res) => {
-    try {
-        const user_id = req.user.id;
+// router.addRoute('GET', '/sessions/history', authenticate, async (req, res) => {
+//     try {
+//         const user_id = req.user.id;
 
-        const result = await pool.query('SELECT * FROM pomodoro_sessions WHERE user_id = $1', [user_id]);
+//         const result = await pool.query('SELECT * FROM pomodoro_sessions WHERE user_id = $1', [user_id]);
 
-        res.writeHead(200);
-        res.end(JSON.stringify({ message: 'sessions founds', sessions: result.rows }));
-    } catch {
-        res.writeHead(500);
-        res.end(JSON.stringify({ message: 'not found sessions'}));
-}
-});
+//         res.writeHead(200);
+//         res.end(JSON.stringify({ message: 'sessions founds', sessions: result.rows }));
+//     } catch {
+//         res.writeHead(500);
+//         res.end(JSON.stringify({ message: 'not found sessions'}));
+// }
+// });
 
 router.addRoute('PATCH', '/sessions/:id', authenticate, async (req, res) => {
     let rawBody = '';
@@ -247,5 +247,61 @@ router.addRoute('DELETE', '/sessions/:sessionId/tasks/:taskId', authenticate, as
     } catch {
         res.writeHead(500);
         res.end(JSON.stringify({ error: 'Could not unlink task from session' }));
+    }
+});
+
+router.addRoute('GET', '/sessions/history', authenticate, async (req, res) => {
+    const { sort, view } = req.query;
+    const userId = req.user.id;
+
+    const sortOptions = {
+        most_recent: 'date DESC',
+        oldest: 'date ASC',
+        shortest_duration: 'total_seconds ASC',
+        longest_duration: 'total_seconds DESC',
+        a_z: 'title ASC',
+        z_a: 'title DESC',
+    };
+
+    const viewOptions = {
+        day: 'AND DATE(ps.started_at) = CURRENT_DATE',
+        week: "AND ps.started_at >= NOW() - INTERVAL '7 days'",
+        month: "AND ps.started_at >= NOW() - INTERVAL '30 days'",
+    };
+
+    try {
+        if (sort && !sortOptions[sort]) {
+            res.writeHead(400);
+            res.end(JSON.stringify({ error: 'Invalid sort option' }));
+            return;
+        }
+
+        if (view && !viewOptions[view]) {
+            res.writeHead(400);
+            res.end(JSON.stringify({ error: 'Invalid sort option' }));
+            return;
+        }
+
+        const result = await pool.query(
+            `
+                SELECT
+                    DATE(ps.started_at) as date,
+                    t.title as title,
+                    SUM(ps.duration_seconds) as total_seconds
+                FROM pomodoro_sessions ps
+                JOIN session_tasks st ON ps.id = st.session_id
+                JOIN tasks t ON st.task_id = t.id
+                WHERE ps.user_id = $1 ${ view ? viewOptions[view] : '' }
+                GROUP BY DATE(ps.started_at), t.title
+                ORDER BY ${ sort ? sortOptions[sort] : 'date DESC'}
+            `,
+            [userId]
+        );
+
+        res.writeHead(200);
+        res.end(JSON.stringify({ result: result.rows }));
+    } catch {
+        res.writeHead(500);
+        res.end(JSON.stringify({ error: 'not found history'}));
     }
 });
