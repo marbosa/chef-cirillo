@@ -1,3 +1,5 @@
+import { globalRateLimiter } from './middlewares/rateLimiter.js';
+
 const routes = [];
 
 const addRoute = (method, path, ...handlers) => {
@@ -42,7 +44,7 @@ const dispatch = (req, res) => {
         index += 1;
         handler(req, res, next);
     };
-    next();
+    globalRateLimiter(req, res, next);
 };
 
 export const router = { addRoute, dispatch };
