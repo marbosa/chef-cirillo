@@ -21,6 +21,7 @@
     "bcrypt": "^6.0.0",
     "dotenv": "^17.2.0",
     "jsonwebtoken": "^9.0.3",
-    "pg": "^8.19.0"
+    "pg": "^8.19.0",
+    "rate-limiter-flexible": "^9.1.1"
   }
 }
