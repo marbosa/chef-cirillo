@@ -2,8 +2,9 @@ import { router } from '../router.js';
 import pool from '../config/database.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { authRateLimiter } from '../middlewares/rateLimiter.js';
 
-router.addRoute('POST', '/auth/register', (req, res) => {
+router.addRoute('POST', '/auth/register', authRateLimiter, (req, res) => {
     let body = '';
 
     req.on('data', (chunk) => { body += chunk; });
@@ -49,7 +50,7 @@ router.addRoute('POST', '/auth/register', (req, res) => {
     });
 });
 
-router.addRoute('POST', '/auth/login', (req, res) => {
+router.addRoute('POST', '/auth/login', authRateLimiter, (req, res) => {
     let body = '';
 
     req.on('data', (chunk) => { body += chunk; });
