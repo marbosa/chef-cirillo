@@ -1,5 +1,6 @@
 import pool from '../config/database.js';
 import { authenticate } from '../middlewares/authenticate.js';
+import validateUUID from '../middlewares/validateUUID.js';
 import { router } from '../router.js';
 
 router.addRoute('GET', '/tasks', authenticate, async (req, res) => {
@@ -15,7 +16,7 @@ router.addRoute('GET', '/tasks', authenticate, async (req, res) => {
     }
 });
 
-router.addRoute('GET', '/tasks/:id', authenticate, async (req, res) => {
+router.addRoute('GET', '/tasks/:id', authenticate, validateUUID, async (req, res) => {
     const id = req.params.id;
     const user = req.user;
 
@@ -74,7 +75,7 @@ router.addRoute('POST', '/tasks', authenticate, (req, res) => {
     });
 });
 
-router.addRoute('PATCH', '/tasks/:id', authenticate, async (req, res) => {
+router.addRoute('PATCH', '/tasks/:id', authenticate, validateUUID, async (req, res) => {
     const id = req.params.id;
     const user = req.user;
     let rawBody = '';
@@ -164,7 +165,7 @@ router.addRoute('PATCH', '/tasks/:id', authenticate, async (req, res) => {
     });
 });
 
-router.addRoute('DELETE', '/tasks/:id', authenticate, async (req, res) => {
+router.addRoute('DELETE', '/tasks/:id', authenticate, validateUUID, async (req, res) => {
     const id = req.params.id;
     const user = req.user;
 

@@ -1,6 +1,7 @@
 import pool from '../config/database.js';
 import { router } from '../router.js';
 import { authenticate } from '../middlewares/authenticate.js';
+import validateUUID from '../middlewares/validateUUID.js';
 
 router.addRoute('POST', '/sessions', authenticate, (req, res) => {
     let rawBody = '';
@@ -97,7 +98,7 @@ router.addRoute('POST', '/sessions', authenticate, (req, res) => {
 // }
 // });
 
-router.addRoute('PATCH', '/sessions/:id', authenticate, async (req, res) => {
+router.addRoute('PATCH', '/sessions/:id', authenticate, validateUUID, async (req, res) => {
     let rawBody = '';
     req.on('data', (chunk) => rawBody += chunk);
 
@@ -156,7 +157,7 @@ router.addRoute('PATCH', '/sessions/:id', authenticate, async (req, res) => {
     });
 });
 
-router.addRoute('POST', '/sessions/:id/tasks', authenticate, (req, res) => {
+router.addRoute('POST', '/sessions/:id/tasks', authenticate, validateUUID, (req, res) => {
     let rawBody = '';
     req.on('data', (chunk) => { rawBody += chunk; });
     req.on('end', async () => {
@@ -205,7 +206,7 @@ router.addRoute('POST', '/sessions/:id/tasks', authenticate, (req, res) => {
     });
 });
 
-router.addRoute('DELETE', '/sessions/:sessionId/tasks/:taskId', authenticate, async (req, res) => {
+router.addRoute('DELETE', '/sessions/:sessionId/tasks/:taskId', authenticate, validateUUID, async (req, res) => {
     try {
         const session_id = req.params.sessionId;
         const task_id = req.params.taskId;

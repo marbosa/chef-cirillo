@@ -1,6 +1,7 @@
 import pool from '../config/database.js';
 import { router } from '../router.js';
 import { authenticate } from '../middlewares/authenticate.js';
+import validateUUID from '../middlewares/validateUUID.js';
 
 router.addRoute('POST', '/cycles', authenticate, async (req, res) => {
     try {
@@ -22,7 +23,7 @@ router.addRoute('POST', '/cycles', authenticate, async (req, res) => {
     }
 });
 
-router.addRoute('PATCH', '/cycles/:id', authenticate, (req, res) => {
+router.addRoute('PATCH', '/cycles/:id', authenticate, validateUUID, (req, res) => {
     let rawBody = '';
     const cycle_id = req.params.id;
 
