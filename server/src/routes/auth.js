@@ -76,14 +76,20 @@ router.addRoute('POST', '/auth/login', authRateLimiter, (req, res) => {
 
             if(await bcrypt.compare(body.password, user.password_hash)) {
                 
-                const token = jwt.sign(
+                const accessToken = jwt.sign(
                     { id: user.id, email: user.email },
                     process.env.JWT_SECRET,
                     { expiresIn:  process.env.JWT_EXPIRES_IN }
                 );
 
+                const refreshToken = jwt.sign(
+                    { id: user.id, email: user.email },
+                    process.env.JWT_REFRESH_SECRET,
+                    { expiresIn:  process.env.JWT_REFRESH_EXPIRES_IN }
+                );
+
                 res.writeHead(200); 
-                res.end(JSON.stringify({ message: 'Login successful', token })); 
+                res.end(JSON.stringify({ message: 'Login successful', accessToken, refreshToken })); 
 
             } else {
                 res.writeHead(400);
@@ -92,6 +98,31 @@ router.addRoute('POST', '/auth/login', authRateLimiter, (req, res) => {
         } catch {
             res.writeHead(500);
             res.end(JSON.stringify({ error: 'Could not login'}));
+        }
+    });
+});
+
+router.addRoute('POST', '/auth/refresh', (req, res) => {
+    let rawBody = '';
+    
+    req.on('data', (chunk) => rawBody += chunk);
+
+    req.on('end', () => {
+        const body = JSON.parse(rawBody);
+        const refreshToken = body.refreshToken;        
+        try {
+            const tokenDecoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+
+            const accessToken = jwt.sign(
+                { id: tokenDecoded.id, email: tokenDecoded.email },
+                process.env.JWT_SECRET,
+                { expiresIn:  process.env.JWT_EXPIRES_IN }
+            );
+            res.writeHead(200);
+            res.end(JSON.stringify({ accessToken: accessToken }));
+        } catch {
+            res.writeHead(401);
+            res.end(JSON.stringify({ error: 'Invalid or expired refresh token' }));
         }
     });
 });
