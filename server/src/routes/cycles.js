@@ -2,6 +2,7 @@ import pool from '../config/database.js';
 import { router } from '../router.js';
 import { authenticate } from '../middlewares/authenticate.js';
 import validateUUID from '../middlewares/validateUUID.js';
+import { logger } from '../config/logger.js';
 
 router.addRoute('POST', '/cycles', authenticate, async (req, res) => {
     try {
@@ -15,9 +16,11 @@ router.addRoute('POST', '/cycles', authenticate, async (req, res) => {
             return;
         }
 
+        logger.info({ userId: user_id, cycleId: result.rows[0].id }, 'Cycle started successfully');
         res.writeHead(201);
         res.end(JSON.stringify({ message: 'Cycle started', cycle: result.rows[0] }));
-    } catch {
+    } catch(err) {
+        logger.error(err, 'Could not create cycle');
         res.writeHead(500);
         res.end(JSON.stringify({ error: 'Could not create cycle' }));
     }
@@ -86,11 +89,13 @@ router.addRoute('PATCH', '/cycles/:id', authenticate, validateUUID, (req, res) =
                 return;
             }
 
+            logger.info({ userId: user_id, cycleId: cycle_id }, 'Cycle updated successfully');
             res.writeHead(200);
             res.end(JSON.stringify({ message: 'Cycle updated', task: result.rows[0] }));
-        } catch {
+        } catch(err) {
+            logger.error(err, 'Could not update cycle');
             res.writeHead(500);
-            res.end(JSON.stringify({ error: 'error' }));
+            res.end(JSON.stringify({ error: 'Could not update cycle' }));
         }
     });
 });
@@ -101,9 +106,11 @@ router.addRoute('GET', '/cycles/history', authenticate, async (req, res) => {
         
         const result = await pool.query('SELECT * FROM cycles WHERE user_id = $1', [user_id]);
 
+        logger.info({ userId: user_id, count: result.rows.length }, 'Cycles fetched successfully');
         res.writeHead(200);
         res.end(JSON.stringify({ message: 'Cycles found', cycles: result.rows }));
-    } catch {
+    } catch(err) {
+        logger.error(err, 'Could not fetch cycles');
         res.writeHead(500);
         res.end(JSON.stringify({ error: 'Could not found cycles' }));
     }

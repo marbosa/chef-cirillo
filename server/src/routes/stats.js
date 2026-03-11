@@ -1,6 +1,7 @@
 import pool from '../config/database.js';
 import { router } from '../router.js';
 import { authenticate } from '../middlewares/authenticate.js';
+import { logger } from '../config/logger.js';
 
 router.addRoute('GET', '/stats/me', authenticate, async (req, res) => {
     const userId = req.user.id;
@@ -35,7 +36,8 @@ router.addRoute('GET', '/stats/me', authenticate, async (req, res) => {
 
         res.writeHead(200);
         res.end(JSON.stringify({ stats: stats }));
-    } catch {
+    } catch(err) {
+        logger.error(err, 'not found stats');
         res.writeHead(500);
         res.end(JSON.stringify({ error: 'not found stats'}));
     }

@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt';
 import pool from '../config/database.js';
 import { authenticate } from '../middlewares/authenticate.js';
 import { router } from '../router.js';
+import { logger } from '../config/logger.js';
 
 router.addRoute('GET', '/users/me', authenticate, async (req, res) => {
     const user = req.user;
@@ -12,9 +13,11 @@ router.addRoute('GET', '/users/me', authenticate, async (req, res) => {
             [user.id]
         );
         const result = query.rows[0];
+        logger.info({ userId: user.id }, 'User fetched successfully');
         res.writeHead(200);
         res.end(JSON.stringify(result));
-    } catch {
+    } catch(err) {
+        logger.error(err, 'Could not fetch user');
         res.writeHead(500);
         res.end(JSON.stringify({ error: 'Could not fetch user'}));
     }
@@ -28,9 +31,11 @@ router.addRoute('DELETE', '/users/me', authenticate, async (req, res) => {
             'DELETE FROM users WHERE id = $1',
             [user.id]
         );
+        logger.info({ userId: user.id }, 'User deleted successfully');
         res.writeHead(200);
         res.end(JSON.stringify({ message: 'User deleted'}));
-    } catch {
+    } catch(err) {
+        logger.error(err, 'Could not delete user');
         res.writeHead(500);
         res.end(JSON.stringify({ error: 'Could not delete user'}));
     }    
@@ -69,9 +74,11 @@ router.addRoute('PATCH', '/users/me', authenticate, async (req, res) => {
                 return;
             }
 
+            logger.info({ userId: user.id, newEmail: body.newEmail }, 'Email changed successfully');
             res.writeHead(200);
             res.end(JSON.stringify({ message: 'Email changed'}));
-        } catch {
+        } catch(err) {
+            logger.error(err, 'Could not change email');
             res.writeHead(500);
             res.end(JSON.stringify({ error: 'Could not change email'}));
         }
@@ -128,10 +135,12 @@ router.addRoute('PATCH', '/users/me/password', authenticate, async (req, res) =>
                 'UPDATE users SET password_hash = $1 WHERE id = $2',
                 [newHash, user.id]
             );
-
+            
+            logger.info({ userId: user.id }, 'Password changed successfully');
             res.writeHead(200);
             res.end(JSON.stringify({ message: 'Password changed successfully'}));                
-        } catch {
+        } catch(err) {
+            logger.error(err, 'Invalid request');
             res.writeHead(500);
             res.end(JSON.stringify({ error: 'Invalid request'}));
         }

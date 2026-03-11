@@ -2,6 +2,7 @@ import pool from '../config/database.js';
 import { router } from '../router.js';
 import { authenticate } from '../middlewares/authenticate.js';
 import validateUUID from '../middlewares/validateUUID.js';
+import { logger } from '../config/logger.js';
 
 router.addRoute('POST', '/sessions', authenticate, (req, res) => {
     let rawBody = '';
@@ -73,10 +74,11 @@ router.addRoute('POST', '/sessions', authenticate, (req, res) => {
                 `INSERT INTO pomodoro_sessions (${columns.join(', ')}) VALUES (${placeholders}) RETURNING *`,
                 vals
             );
-
+            logger.info({ userId: user_id, type: body.type }, 'Session created successfully');
             res.writeHead(201);
             res.end(JSON.stringify({ message: 'Session created', session: result.rows[0]}));
-        } catch {
+        } catch(err) {
+            logger.error(err, 'Could not validate cycle');
             res.writeHead(500);
             res.end(JSON.stringify({ error: 'Could not validate cycle' }));
             return;                
@@ -148,9 +150,11 @@ router.addRoute('PATCH', '/sessions/:id', authenticate, validateUUID, async (req
                 return;
             }
 
+            logger.info({ userId: user_id, sessionId: id }, 'Session updated successfully');
             res.writeHead(200);
             res.end(JSON.stringify({ message: 'Session updated successfully', session: result.rows}));
-        } catch {
+        } catch(err) {
+            logger.error(err, 'Could not update session');
             res.writeHead(500);
             res.end(JSON.stringify({ error: 'Could not update session' }));
         }
@@ -197,9 +201,11 @@ router.addRoute('POST', '/sessions/:id/tasks', authenticate, validateUUID, (req,
                 [id, body.task_id]
             );
 
+            logger.info({ userId: user_id, sessionId: id, taskId: body.task_id }, 'Task linked to session successfully');
             res.writeHead(201);
             res.end(JSON.stringify({ message: 'Task linked to session', result: result.rows[0] }));
-        } catch {
+        } catch(err) {
+            logger.error(err, 'Could not link task to session');
             res.writeHead(500);
             res.end(JSON.stringify({ error: 'Could not link task to session' }));
         }
@@ -243,9 +249,11 @@ router.addRoute('DELETE', '/sessions/:sessionId/tasks/:taskId', authenticate, va
             [session_id, task_id]
         );
 
+        logger.info({ userId: user_id, sessionId: session_id, taskId: task_id }, 'Task unlinked from session successfully');
         res.writeHead(200);
         res.end(JSON.stringify({ message: 'Task unlinked from session'}));
-    } catch {
+    } catch(err) {
+        logger.error(err, 'Could not unlink task from session');
         res.writeHead(500);
         res.end(JSON.stringify({ error: 'Could not unlink task from session' }));
     }
@@ -299,9 +307,11 @@ router.addRoute('GET', '/sessions/history', authenticate, async (req, res) => {
             [userId]
         );
 
+        logger.info({ userId, sort, view, count: result.rows.length }, 'Session history fetched successfully');
         res.writeHead(200);
         res.end(JSON.stringify({ result: result.rows }));
-    } catch {
+    } catch(err) {
+        logger.error(err, 'not found history');
         res.writeHead(500);
         res.end(JSON.stringify({ error: 'not found history'}));
     }

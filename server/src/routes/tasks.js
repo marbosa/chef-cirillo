@@ -1,4 +1,5 @@
 import pool from '../config/database.js';
+import { logger } from '../config/logger.js';
 import { authenticate } from '../middlewares/authenticate.js';
 import validateUUID from '../middlewares/validateUUID.js';
 import { router } from '../router.js';
@@ -8,10 +9,12 @@ router.addRoute('GET', '/tasks', authenticate, async (req, res) => {
 
     try {
         const result = await pool.query('SELECT * FROM tasks WHERE user_id = $1', [user.id]);
+        logger.info({ userId: user.id, count: result.rows.length }, 'Tasks fetched successfully');
         res.writeHead(200);
         res.end(JSON.stringify({ tasks: result.rows }));
-    } catch {
-        res.writeHead(400);
+    } catch(err) {
+        logger.error(err, 'Could not fetch tasks');
+        res.writeHead(500);
         res.end(JSON.stringify({ error: 'Could not fetch tasks' }));
     }
 });
@@ -22,9 +25,11 @@ router.addRoute('GET', '/tasks/:id', authenticate, validateUUID, async (req, res
 
     try {
         const result = await pool.query('SELECT * FROM tasks WHERE id = $1 AND user_id = $2', [id, user.id]);
+        logger.info({ userId: user.id, taskId: id }, 'Task fetched successfully');
         res.writeHead(200);
         res.end(JSON.stringify({ tasks: result.rows }));
-    } catch {
+    } catch(err) {
+        logger.error(err, 'Could not fetch tasks');
         res.writeHead(500);
         res.end(JSON.stringify({ error: 'Could not fetch tasks' }));
     }
@@ -66,9 +71,11 @@ router.addRoute('POST', '/tasks', authenticate, (req, res) => {
                 return;
             } 
 
+            logger.info({ userId: user.id, taskId: result.rows[0].id }, 'Task created successfully');
             res.writeHead(201);
             res.end(JSON.stringify({ message: 'Created task', task: result.rows[0]}));
-        } catch {
+        } catch(err) {
+            logger.error(err, 'Could not create task');
             res.writeHead(500);
             res.end(JSON.stringify({ error: 'Could not create task'}));
         }
@@ -84,83 +91,85 @@ router.addRoute('PATCH', '/tasks/:id', authenticate, validateUUID, async (req, r
 
     req.on('end', async () => {
         try {
-        const body = JSON.parse(rawBody);
-        const fields = [];
-        const values = [];
+            const body = JSON.parse(rawBody);
+            const fields = [];
+            const values = [];
 
-        if (body.title !== undefined) {
-            if (!body.title.trim()) {
-            res.writeHead(400);
-            res.end(JSON.stringify({ error: 'Title cannot be empty' }));
-            return;
+            if (body.title !== undefined) {
+                if (!body.title.trim()) {
+                res.writeHead(400);
+                res.end(JSON.stringify({ error: 'Title cannot be empty' }));
+                return;
+                }
+                fields.push(`title = $${fields.length + 1}`);
+                values.push(body.title.trim());
             }
-            fields.push(`title = $${fields.length + 1}`);
-            values.push(body.title.trim());
-        }
 
-        if (body.estimated_pomodoros !== undefined) {
-            if (isNaN(body.estimated_pomodoros) || body.estimated_pomodoros < 1) {
-            res.writeHead(400);
-            res.end(JSON.stringify({ error: 'estimated_pomodoros must be a positive number' }));
-            return;
+            if (body.estimated_pomodoros !== undefined) {
+                if (isNaN(body.estimated_pomodoros) || body.estimated_pomodoros < 1) {
+                res.writeHead(400);
+                res.end(JSON.stringify({ error: 'estimated_pomodoros must be a positive number' }));
+                return;
+                }
+                fields.push(`estimated_pomodoros = $${fields.length + 1}`);
+                values.push(Number(body.estimated_pomodoros));
             }
-            fields.push(`estimated_pomodoros = $${fields.length + 1}`);
-            values.push(Number(body.estimated_pomodoros));
-        }
 
-        if (body.status !== undefined) {
-            const validStatuses = ['pending', 'in_progress', 'completed'];
-            if (!validStatuses.includes(body.status)) {
-            res.writeHead(400);
-            res.end(JSON.stringify({ error: 'Invalid status' }));
-            return;
+            if (body.status !== undefined) {
+                const validStatuses = ['pending', 'in_progress', 'completed'];
+                if (!validStatuses.includes(body.status)) {
+                res.writeHead(400);
+                res.end(JSON.stringify({ error: 'Invalid status' }));
+                return;
+                }
+                fields.push(`status = $${fields.length + 1}`);
+                values.push(body.status);
             }
-            fields.push(`status = $${fields.length + 1}`);
-            values.push(body.status);
-        }
 
-        if (body.position !== undefined) {
-            if (isNaN(body.position) || body.position < 0) {
-            res.writeHead(400);
-            res.end(JSON.stringify({ error: 'Position must be a positive number' }));
-            return;
+            if (body.position !== undefined) {
+                if (isNaN(body.position) || body.position < 0) {
+                res.writeHead(400);
+                res.end(JSON.stringify({ error: 'Position must be a positive number' }));
+                return;
+                }
+                fields.push(`position = $${fields.length + 1}`);
+                values.push(Number(body.position));
             }
-            fields.push(`position = $${fields.length + 1}`);
-            values.push(Number(body.position));
-        }
 
-        if (body.completed_pomodoros !== undefined) {
-            if (isNaN(body.completed_pomodoros) || body.completed_pomodoros < 0) {
-            res.writeHead(400);
-            res.end(JSON.stringify({ error: 'completed_pomodoros must be a positive number' }));
-            return;
+            if (body.completed_pomodoros !== undefined) {
+                if (isNaN(body.completed_pomodoros) || body.completed_pomodoros < 0) {
+                res.writeHead(400);
+                res.end(JSON.stringify({ error: 'completed_pomodoros must be a positive number' }));
+                return;
+                }
+                fields.push(`completed_pomodoros = $${fields.length + 1}`);
+                values.push(Number(body.completed_pomodoros));
             }
-            fields.push(`completed_pomodoros = $${fields.length + 1}`);
-            values.push(Number(body.completed_pomodoros));
-        }
 
-        if (fields.length === 0) {
-            res.writeHead(400);
-            res.end(JSON.stringify({ error: 'No fields to update' }));
-            return;
-        }
+            if (fields.length === 0) {
+                res.writeHead(400);
+                res.end(JSON.stringify({ error: 'No fields to update' }));
+                return;
+            }
 
-        const result = await pool.query(
-            `UPDATE tasks SET ${fields.join(', ')} WHERE id = $${fields.length + 1} AND user_id = $${fields.length + 2} RETURNING *`,
-            [...values, id, user.id]
-        );
+            const result = await pool.query(
+                `UPDATE tasks SET ${fields.join(', ')} WHERE id = $${fields.length + 1} AND user_id = $${fields.length + 2} RETURNING *`,
+                [...values, id, user.id]
+            );
 
-        if (result.rows.length === 0) {
-            res.writeHead(404);
-            res.end(JSON.stringify({ error: 'Task not found' }));
-            return;
-        }
+            if (result.rows.length === 0) {
+                res.writeHead(404);
+                res.end(JSON.stringify({ error: 'Task not found' }));
+                return;
+            }
 
-        res.writeHead(200);
-        res.end(JSON.stringify({ message: 'Task updated', task: result.rows[0] }));
-        } catch {
-        res.writeHead(500);
-        res.end(JSON.stringify({ error: 'Could not update task' }));
+            logger.info({ userId: user.id, taskId: id }, 'Task updated successfully');
+            res.writeHead(200);
+            res.end(JSON.stringify({ message: 'Task updated', task: result.rows[0] }));
+        } catch(err) {
+            logger.error(err, 'Could not update task');
+            res.writeHead(500);
+            res.end(JSON.stringify({ error: 'Could not update task' }));
         }
     });
 });
@@ -171,9 +180,12 @@ router.addRoute('DELETE', '/tasks/:id', authenticate, validateUUID, async (req, 
 
     try {
         await pool.query('DELETE FROM tasks WHERE id = $1 AND user_id = $2', [id, user.id]);
+        
+        logger.info({ userId: user.id, taskId: id }, 'Task deleted successfully');
         res.writeHead(200);
         res.end(JSON.stringify({ message: 'Task deleted' }));
-    } catch {
+    } catch(err) {
+        logger.error(err, 'Could not delete task');
         res.writeHead(500);
         res.end(JSON.stringify({ error: 'Could not delete task' }));
     }
