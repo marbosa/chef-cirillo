@@ -2,6 +2,7 @@ import http from 'http';
 import dotenv from 'dotenv';
 import { router } from './router.js';
 import { applyHeaders, handlePreflight } from './config/headers.js';
+import './routes/index.js';
 
 dotenv.config();
 
