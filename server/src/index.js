@@ -2,6 +2,7 @@ import http from 'http';
 import dotenv from 'dotenv';
 import { router } from './router.js';
 import { applyHeaders, handlePreflight } from './config/headers.js';
+import compress from './middlewares/compress.js';
 import './routes/index.js';
 
 dotenv.config();
@@ -12,7 +13,7 @@ const server = http.createServer((req, res) => {
     applyHeaders(res);
     if (handlePreflight(req, res)) return;
 
-    router.dispatch(req, res);
+    compress(req, res, () => router.dispatch(req, res));
 });
 
 server.listen(PORT, () => {
