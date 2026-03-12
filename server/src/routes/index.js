@@ -1,5 +1,6 @@
 import './auth.js';
 import './cycles.js';
+import './health.js';
 import './sessions.js';
 import './stats.js';
 import './tasks.js';
