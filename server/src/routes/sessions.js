@@ -260,7 +260,7 @@ router.addRoute('DELETE', '/sessions/:sessionId/tasks/:taskId', authenticate, va
 });
 
 router.addRoute('GET', '/sessions/history', authenticate, async (req, res) => {
-    const { sort, view } = req.query;
+    const { sort, view, offset, limit } = req.query;
     const userId = req.user.id;
 
     const sortOptions = {
@@ -291,6 +291,9 @@ router.addRoute('GET', '/sessions/history', authenticate, async (req, res) => {
             return;
         }
 
+        const parsedOffset = Number(offset) || 0;
+        const parsedLimit = Number(limit) || 1;
+
         const result = await pool.query(
             `
                 SELECT
@@ -303,8 +306,9 @@ router.addRoute('GET', '/sessions/history', authenticate, async (req, res) => {
                 WHERE ps.user_id = $1 ${ view ? viewOptions[view] : '' }
                 GROUP BY DATE(ps.started_at), t.title
                 ORDER BY ${ sort ? sortOptions[sort] : 'date DESC'}
+                LIMIT $2 OFFSET $3
             `,
-            [userId]
+            [userId, parsedLimit, parsedOffset]
         );
 
         logger.info({ userId, sort, view, count: result.rows.length }, 'Session history fetched successfully');
