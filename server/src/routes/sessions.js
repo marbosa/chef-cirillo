@@ -292,7 +292,7 @@ router.addRoute('GET', '/sessions/history', authenticate, async (req, res) => {
         }
 
         const parsedOffset = Number(offset) || 0;
-        const parsedLimit = Number(limit) || 1;
+        const parsedLimit = Number(limit) || 10;
 
         const result = await pool.query(
             `
