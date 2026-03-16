@@ -1,5 +1,5 @@
-import { useContext } from 'react';
-import { NumericInput, Select } from '../index';
+import { Children, useContext, useState } from 'react';
+import { DeleteAccount, DeleteData, Modal, NumericInput, Select } from '../index';
 import { ThemeContext, PomodoroContext } from '../../contexts/index';
 import styles from './Settings.module.css';
 import { useAlarm } from '../../hooks';
@@ -9,11 +9,37 @@ const Settings = () => {
     const { pomodoro, setPomodoro, autoStart, setAutoStart } = useContext(PomodoroContext);
     const { alarmSettings, setAlarmSettings } = useAlarm();
 
+    const [modalConfig, setModalConfig] = useState({
+        isOpen: false,
+        title: '',
+        children: null
+    });
+
+    const closeModal = () => {
+        setModalConfig(prev => ({ ...prev, isOpen: false}));
+    };
+
     const defaultPomodoro = {
         pomodoro: 25,
         break: 5,
         longBreak: 10,
         longBreakInterval: 4
+    };
+
+    const deleteAccount = () => {
+        setModalConfig({
+            title: 'Delete your account',
+            isOpen: true,
+            children: <DeleteAccount close={closeModal}/>
+        });
+    };
+
+    const deleteData = () => {
+        setModalConfig({
+            title: 'Delete your data',
+            isOpen: true,
+            children: <DeleteData close={closeModal}/>
+        });
     };
 
     return (
@@ -26,7 +52,7 @@ const Settings = () => {
                     <NumericInput 
                         name={'pomodoro'} 
                         value={pomodoro.pomodoro}
-                        minValue={0}
+                        minValue={1}
                         maxValue={300}
                         onChange={val => setPomodoro({ ...pomodoro, pomodoro: val})}
                     />
@@ -36,7 +62,7 @@ const Settings = () => {
                     <NumericInput 
                         name={'break'} 
                         value={pomodoro.break}
-                        minValue={0}
+                        minValue={1}
                         maxValue={300}
                         onChange={val => setPomodoro({ ...pomodoro, break: val})}
                     />
@@ -46,7 +72,7 @@ const Settings = () => {
                     <NumericInput 
                         name={'longBreak'} 
                         value={pomodoro.longBreak}
-                        minValue={0}
+                        minValue={1}
                         maxValue={300}
                         onChange={val => setPomodoro({ ...pomodoro, longBreak: val})}
                     />
@@ -56,7 +82,7 @@ const Settings = () => {
                     <NumericInput 
                         name={'longBreakInterval'} 
                         value={pomodoro.longBreakInterval}
-                        minValue={0}
+                        minValue={1}
                         maxValue={30}
                         onChange={val => setPomodoro({ ...pomodoro, longBreakInterval: val})}
                     />
@@ -143,11 +169,31 @@ const Settings = () => {
                     <span>Music</span>
                     <button>Connect</button>
                 </div>
-                <div className={styles['settings__section-item']}>
+                {/* <div className={styles['settings__section-item']}>
                     <span>Tasks</span>
                     <button>Connect</button>
+                </div> */}
+            </section>
+
+            <section className={styles['settings__section']}>
+                <h2 className={styles['settings__section-title']}>Account</h2>
+                
+                <div className={styles['settings__section-item']}>
+                    <span>Delete data</span>
+                    <button onClick={() => deleteData()}>Ok</button>
+                </div>
+                <div className={styles['settings__section-item']}>
+                    <span>Delete account</span>
+                    <button onClick={() => deleteAccount()}>Ok</button>
                 </div>
             </section>
+            <Modal 
+                isOpen={modalConfig.isOpen} 
+                title={modalConfig.title} 
+                onClose={closeModal}
+            >
+                {modalConfig.children}
+            </Modal>
         </div>
     );
 };
