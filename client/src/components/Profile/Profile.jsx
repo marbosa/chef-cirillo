@@ -1,9 +1,15 @@
 import { useState } from 'react';
-import { Select } from './../../components';
+import { ChangePassword, CreateAccount, LogIn, LogOut, Modal, Select } from './../../components';
 import styles from './Profile.module.css';
 
 
 const Profile = () => {
+    const [modalConfig, setModalConfig] = useState({
+        isOpen: false,
+        title: '',
+        children: null
+    });
+
     const sortOptions = {
         options: ['most recent', 'oldest', 'shortest duration', 'longest duration', 'A - Z', 'Z - A', 'group by task'],
         defaultValue: 'most recent'
@@ -16,6 +22,42 @@ const Profile = () => {
 
     const [selectedSort, setSelectedSort] = useState(sortOptions.defaultValue);
     const [selectedDate, setSelectedDate] = useState(dateOptions.defaultValue);
+
+    const closeModal = () => {
+        setModalConfig(prev => ({ ...prev, isOpen: false}));
+    };
+
+    const createAccount = () => {
+        setModalConfig({
+            isOpen: true,
+            title: 'Create Account',
+            children: <CreateAccount close={closeModal}/>
+        });
+    };
+
+    const logIn = () => {
+        setModalConfig({
+            isOpen: true,
+            title: 'Log In',
+            children: <LogIn close={closeModal}/>
+        });
+    };
+
+    const logOut = () => {
+        setModalConfig({
+            isOpen: true,
+            title: 'Log Out',
+            children: <LogOut close={closeModal}/>
+        });
+    };
+
+    const changePassword = () => {
+        setModalConfig({
+            isOpen: true,
+            title: 'Change Password',
+            children: <ChangePassword close={closeModal}/>
+        });
+    };
 
     return (
         <div className={styles['profile__container']}>
@@ -36,15 +78,19 @@ const Profile = () => {
                 </div>
                 <div className={styles['profile__section-item']}>
                     <span>Log Out</span>
-                    <button>Ok</button>
+                    <button onClick={() => logOut()}>Ok</button>
                 </div>
                 <div className={styles['profile__section-item']}>
                     <span>Log In</span>
-                    <button>Ok</button>
+                    <button onClick={() => logIn()}>Ok</button>
                 </div>
                 <div className={styles['profile__section-item']}>
                     <span>Create Account</span>
-                    <button>Ok</button>
+                    <button onClick={() => createAccount()}>Ok</button>
+                </div>
+                <div className={styles['profile__section-item']}>
+                    <span>Change Password</span>
+                    <button onClick={() => changePassword()}>Ok</button>
                 </div>
             </section>
 
@@ -109,6 +155,14 @@ const Profile = () => {
                     </tbody>
                 </table>
             </section>
+
+            <Modal 
+                isOpen={modalConfig.isOpen} 
+                title={modalConfig.title} 
+                onClose={closeModal}
+            >
+                {modalConfig.children}
+            </Modal>
         </div>
     );
 };
