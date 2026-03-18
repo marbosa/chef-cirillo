@@ -19,7 +19,7 @@ const ACTIONS = {
 };
 
 export const usePomodoro = () => {
-    const { pomodoro, isRunning, setIsRunning, autoStart } = useContext(PomodoroContext);
+    const { pomodoro, isRunning, setIsRunning, autoStart, activeTaskId } = useContext(PomodoroContext);
 
     const { playAlarm } = useAlarm();
 
@@ -84,6 +84,9 @@ export const usePomodoro = () => {
                 dispatch({ type: ACTIONS.SET_TIME, payload: 'pomodoro' });
                 if (!pomodoroState.cycleReverted) dispatch({ type: ACTIONS.INCREMENT_COUNT });
             }
+            if(activeTaskId !== null) {
+                console.log(activeTaskId);
+            }
         }
 
         const interval = setInterval(() => {
@@ -103,7 +106,7 @@ export const usePomodoro = () => {
         }, 250);
 
         return () => clearInterval(interval);
-    }, [isRunning, pomodoroState, pomodoro, autoStart, setIsRunning, playAlarm]);
+    }, [isRunning, pomodoroState, pomodoro, autoStart, setIsRunning, playAlarm, activeTaskId]);
 
     return { pomodoroState, pomodoroControls };
 };
