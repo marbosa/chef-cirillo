@@ -7,6 +7,8 @@ const PomodoroContext = createContext({
     setIsRunning: () => {},
     autoStart: false,
     setAutoStart: () => {},
+    activeTaskId: null,
+    setActiveTaskId: () => {}
 });
 
 export default PomodoroContext;

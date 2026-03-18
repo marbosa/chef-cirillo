@@ -11,9 +11,10 @@ const PomodoroProvider = ({ children }) => {
     
     const [isRunning, setIsRunning] = useState(false);
     const [autoStart, setAutoStart] = useState(false);
-    
+    const [activeTaskId, setActiveTaskId] = useState(null);
+
     return (
-        <PomodoroContext.Provider value={{ pomodoro, setPomodoro, isRunning, setIsRunning, autoStart, setAutoStart }}>
+        <PomodoroContext.Provider value={{ pomodoro, setPomodoro, isRunning, setIsRunning, autoStart, setAutoStart, activeTaskId, setActiveTaskId }}>
             { children }
         </PomodoroContext.Provider>
     );
