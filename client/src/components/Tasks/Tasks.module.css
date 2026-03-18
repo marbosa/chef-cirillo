@@ -1,0 +1,177 @@
+.tasks__container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.tasks__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.tasks__list-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding-inline: clamp(1rem, 0.975rem + 0.125vi, 1.125rem);
+    padding-block: clamp(0.75rem, 0.7rem + 0.25vi, 1rem);
+    gap: clamp(0.5rem, 0.4rem + 0.5vi, 1rem);
+    background-color: var(--bg);
+    border-radius: 8px;
+}
+
+.tasks__list-item > input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    position: relative;
+    width: clamp(1.25rem, 1.2rem + 0.25vi, 1.5rem);
+    height: clamp(1.25rem, 1.2rem + 0.25vi, 1.5rem);
+    border: 2px solid var(--color-accent);
+    border-radius: 6px;
+    background-color: transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tasks__list-item > input[type="checkbox"]:checked {
+    background-color: var(--color-accent);
+}
+
+.tasks__list-item > input[type="checkbox"]:checked::before {
+    content: "✔";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--bg);
+    font-size: clamp(0.875rem, 0.825rem + 0.25vi, 1.125rem);
+}
+
+.tasks__list-item-info {
+    display: flex;
+    align-items: center;
+    gap: clamp(0.75rem, 0.7rem + 0.25vi, 1rem);
+    color: var(--text-secondary);
+    flex: 1;        
+    min-width: 0;
+    overflow: hidden;
+}
+
+.tasks__list-item-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: help;
+  /* display: inline-block;     */
+}
+
+.tasks__list-item-title::after {
+    content: attr(data-fulltext);
+    position: absolute;       
+    bottom: 50%;           
+    left: 50%;                
+    transform: translateX(-50%);
+
+    background: var(--color-accent);
+    color: var(--text-secondary);
+    padding: 0.35rem 0.65rem;
+    border-radius: 6px;
+    white-space: normal;
+    z-index: 1000;
+    width: max-content;
+    max-width: 300px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+
+    opacity: 0;
+    visibility: hidden;
+}
+
+.tasks__list-item-title:hover::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+
+.tasks__list-item-progress {
+    font-size: clamp(0.875rem, 0.863rem + 0.063vi, 0.938rem);
+}
+
+.tasks__list-item-actions {
+    display: flex;
+    flex-direction: row;
+    gap: clamp(0.25rem, 0.2rem + 0.25vi, 0.5rem);
+    margin-left: auto;
+    color: var(--text-secondary);
+}
+
+.tasks__list-item-actions > button {
+    padding: 0.25rem;
+    background-color: var(--color-accent);
+    border-radius: 4px;
+    color: var(--text-secondary);
+}
+
+.tasks__list-item-actions > button > svg {
+    width: clamp(1.25rem, 1.35rem + 0.25vi, 1.5rem);
+    height: clamp(1.25rem, 1.35rem + 0.25vi, 1.5rem);
+}
+
+.tasks__add {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.75rem, 0.7rem + 0.25vi, 1rem);
+    padding-inline: clamp(1rem, 0.975rem + 0.125vi, 1.125rem);
+    padding-block: clamp(0.75rem, 0.7rem + 0.25vi, 1rem);
+    background-color: var(--bg);
+    border-radius: 8px;
+}
+
+.tasks__add-container {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.5rem, 0.45rem + 0.25vi, 0.75rem);
+}
+
+.tasks__add-input {
+    width: 100%;
+    font-size: clamp(1rem, 0.975rem + 0.125vi, 1.125rem);
+}
+
+.tasks__add-field {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: clamp(1rem, 0.975rem + 0.125vi, 1.125rem);
+}
+
+.tasks__add-field > span {
+    font-size: clamp(1rem, 0.975rem + 0.125vi, 1.125rem);
+}
+
+.tasks__add-field > div {
+    background-color: var(--color-accent);
+}
+
+.tasks__add-actions {
+    display: flex;
+    align-self: flex-end;
+    gap: clamp(0.5rem, 0.45rem + 0.25vi, 0.75rem);
+}
+
+.tasks__add-actions button {
+    font-size: clamp(1rem, 0.975rem + 0.125vi, 1.125rem);
+    border-radius: 8px;
+    padding-block: clamp(0.25rem, 0.2rem + 0.25vi, 0.5rem);
+    padding-inline: clamp(0.5rem, 0.45rem + 0.25vi, 0.75rem);
+    background-color: var(--color-accent);
+}
+
+.task{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: end;
+
+}
+
