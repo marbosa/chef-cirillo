@@ -16,7 +16,7 @@ router.addRoute('POST', '/auth/register', authRateLimiter, (req, res) => {
 
         if (!body.email || !body.password) {
             res.writeHead(400);
-            res.end(JSON.stringify({ error: 'Email and password are required'}));
+            res.end(JSON.stringify({ message: 'Email and password are required'}));
             return;
         };
 
@@ -32,23 +32,29 @@ router.addRoute('POST', '/auth/register', authRateLimiter, (req, res) => {
             );
             const newUser = result.rows[0];
 
-            const token = jwt.sign(
-                { id: newUser.id, email: newUser.email },
+            const accessToken = jwt.sign(
+                { id: user.id, email: user.email },
                 process.env.JWT_SECRET,
                 { expiresIn:  process.env.JWT_EXPIRES_IN }
             );
 
+            const refreshToken = jwt.sign(
+                { id: user.id, email: user.email },
+                process.env.JWT_REFRESH_SECRET,
+                { expiresIn:  process.env.JWT_REFRESH_EXPIRES_IN }
+            );
+
             logger.info({ userId: newUser.id }, 'Account created successfully');
             res.writeHead(201);
-            res.end(JSON.stringify({ message: 'Account created', token }));
+            res.end(JSON.stringify({ message: 'Account created', accessToken, refreshToken }));
         } catch(err) {
             if(err.code === '23505') {
                 res.writeHead(409);
-                res.end(JSON.stringify({ error: 'Email already in use'}));
+                res.end(JSON.stringify({ message: 'Email already in use'}));
             } else {
                 logger.error(err, 'Could not create account');
                 res.writeHead(500);
-                res.end(JSON.stringify({ error: 'Could not create account'}));
+                res.end(JSON.stringify({ message: 'Could not create account'}));
             }
         }
     });
@@ -64,7 +70,7 @@ router.addRoute('POST', '/auth/login', authRateLimiter, (req, res) => {
 
         if (!body.email || !body.password) {
             res.writeHead(400);
-            res.end(JSON.stringify({ error: 'Email and password are required'}));
+            res.end(JSON.stringify({ message: 'Email and password are required'}));
             return;
         };
 
@@ -74,7 +80,7 @@ router.addRoute('POST', '/auth/login', authRateLimiter, (req, res) => {
 
             if(!user) {
                 res.writeHead(400);
-                res.end(JSON.stringify({ error: 'Invalid credentials'}));
+                res.end(JSON.stringify({ message: 'Invalid credentials'}));
                 return;
             }
 
@@ -97,12 +103,12 @@ router.addRoute('POST', '/auth/login', authRateLimiter, (req, res) => {
                 res.end(JSON.stringify({ message: 'Login successful', accessToken, refreshToken })); 
             } else {
                 res.writeHead(400);
-                res.end(JSON.stringify({ error: 'Invalid credentials'}));
+                res.end(JSON.stringify({ message: 'Invalid credentials'}));
             }
         } catch(err) {
             logger.error(err, 'Could not login');
             res.writeHead(500);
-            res.end(JSON.stringify({ error: 'Could not login'}));
+            res.end(JSON.stringify({ message: 'Could not login'}));
         }
     });
 });
@@ -129,7 +135,7 @@ router.addRoute('POST', '/auth/refresh', (req, res) => {
         } catch(err) {
             logger.warn(err, 'Invalid or expired refresh token');
             res.writeHead(401);
-            res.end(JSON.stringify({ error: 'Invalid or expired refresh token' }));
+            res.end(JSON.stringify({ message: 'Invalid or expired refresh token' }));
         }
     });
 });
