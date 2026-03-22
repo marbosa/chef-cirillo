@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import styles from './CreateAccount.module.css';
+import { auth } from '../../api/auth';
 
 const CreateAccount = ({ close }) => {
     const [formData, setFormData] = useState({
@@ -11,7 +12,8 @@ const CreateAccount = ({ close }) => {
     const [errors, setErrors] = useState({
         email: '', 
         password: '', 
-        confirmPassword: ''
+        confirmPassword: '',
+        server: ''
     });
 
     const [showFeedback, setShowFeedback] = useState(false);
@@ -19,15 +21,8 @@ const CreateAccount = ({ close }) => {
     const changeData = (e) => {
         const {name, value} = e.target;
 
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-
-        setErrors(prev => ({
-            ...prev, 
-            [name]: ''
-        }));
+        setFormData(prev => ({ ...prev, [name]: value }));
+        setErrors(prev => ({ ...prev, [name]: '', server: '' }));
     };
 
     const validateForm = (data) => {
@@ -52,22 +47,27 @@ const CreateAccount = ({ close }) => {
         return errors;
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async(e) => {
         e.preventDefault();
 
         const newErrors = validateForm(formData);
-        setErrors(newErrors);
+        setErrors({...newErrors, server: ''});
 
         const hasErrors = Object.values(newErrors).some(err => err != '');
         if (hasErrors) return;
+        
+        try {
+            await auth.register(formData);
+        } catch(err) {
+            setErrors(prev => ({ ...prev, server: err.message }));
+            return;
+        }
 
         setShowFeedback(true);
 
         setTimeout(() => {
             close();
         }, 2000);
-
-        console.log('Form valid', formData);
     };
 
     const cancelSubmit = () => {
@@ -79,11 +79,11 @@ const CreateAccount = ({ close }) => {
         setErrors({ 
             email: '', 
             password: '', 
-            confirmPassword: '' 
+            confirmPassword: '',
+            server: ''
         });
 
         close();
-        console.log('Form cancel', formData);
     };
 
     return (
@@ -152,6 +152,11 @@ const CreateAccount = ({ close }) => {
                     Cancelar
                 </button>
             </div>
+            { errors.server && (
+                <div className={styles['form-feedback']}>
+                    <p>{errors.server}</p>
+                </div>
+            )}
             { showFeedback && (
                 <div className={styles['form-feedback']}>
                     <p>Account created successfully!</p>
