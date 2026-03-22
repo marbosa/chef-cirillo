@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ForgotPassword, Modal } from './../../components';
+import { auth } from '../../api/auth';
 import styles from './LogIn.module.css';
 
 const LogIn = ({close}) => {
@@ -10,7 +11,8 @@ const LogIn = ({close}) => {
 
     const [errors, setErrors] = useState({
         email: '',
-        password: ''
+        password: '',
+        server: ''
     });
 
     const [forgotPassword, setForgotPassword] = useState(false);
@@ -19,16 +21,10 @@ const LogIn = ({close}) => {
     const changeData = (e) => {
         const {name, value} = e.target;
 
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-
-        setErrors(prev => ({
-            ...prev, 
-            [name]: ''
-        }));
+        setFormData(prev => ({ ...prev, [name]: value }));
+        setErrors(prev => ({ ...prev, [name]: '', server: '' }));
     };
+
 
     const validateForm = (data) => {
         const errors = {
@@ -47,14 +43,21 @@ const LogIn = ({close}) => {
         return errors;
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         const newErrors = validateForm(formData);
-        setErrors(newErrors);
+        setErrors({...newErrors, server: ''});
 
         const hasErrors = Object.values(newErrors).some(err => err != '');
         if (hasErrors) return;
+
+        try {
+            await auth.login(formData);
+        } catch(err) {
+            setErrors(prev => ({ ...prev, server: err.message }));
+            return;
+        }
 
         setShowFeedback(true);
 
@@ -65,6 +68,7 @@ const LogIn = ({close}) => {
 
     const cancelSubmit = () => {
         setFormData({
+            
             email: '',
             password: '',
         });
@@ -72,10 +76,10 @@ const LogIn = ({close}) => {
         setErrors({ 
             email: '', 
             password: '', 
+            server: ''
         });
 
         close();
-        console.log('Form cancel', formData);
     };
 
     return (
@@ -130,6 +134,11 @@ const LogIn = ({close}) => {
             <span onClick={() => setForgotPassword(true)}>
                 Forgot your password?
             </span>
+            { errors.server && (
+                <div className={styles['form-feedback']}>
+                    <p>{errors.server}</p>
+                </div>
+            )}
             { showFeedback && (
                 <div className={styles['form-feedback']}>
                     <p>Logged in successfully!</p>
