@@ -1,10 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import styles from './LogOut.module.css';
+import { auth } from '../../api/auth';
 
 const LogOut = ({ close }) => {
     const [showFeedback, setShowFeedback] = useState(false);
     
-    const handleConfirm = () => {
+    const handleConfirm = async () => {
+        try {
+            await auth.logout();
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+        } catch {
+            return;
+        }
         setShowFeedback(true);
         setTimeout(close, 2000);
     };
@@ -12,12 +20,6 @@ const LogOut = ({ close }) => {
     const handleCancel = () => {
         close();
     };
-
-    useEffect(() => {
-        if (!showFeedback) return;
-        const timer = setTimeout(close, 1500);
-        return () => clearTimeout(timer);
-    }, [showFeedback, close]);
 
     return (
         <div className={styles['modal']}>
