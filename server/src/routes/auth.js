@@ -2,9 +2,11 @@ import { router } from '../router.js';
 import pool from '../config/database.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import crypto from 'node:crypto';
 import { authRateLimiter } from '../middlewares/rateLimiter.js';
 import { logger } from '../config/logger.js';
 import { authenticate } from '../middlewares/authenticate.js';
+import { transporter } from '../config/mailer.js';
 
 router.addRoute('POST', '/auth/register', authRateLimiter, (req, res) => {
     let body = '';
@@ -85,7 +87,6 @@ router.addRoute('POST', '/auth/login', authRateLimiter, (req, res) => {
             }
 
             if(await bcrypt.compare(body.password, user.password_hash)) {
-                
                 const accessToken = jwt.sign(
                     { id: user.id, email: user.email },
                     process.env.JWT_SECRET,
@@ -136,6 +137,60 @@ router.addRoute('POST', '/auth/refresh', (req, res) => {
             logger.warn(err, 'Invalid or expired refresh token');
             res.writeHead(401);
             res.end(JSON.stringify({ message: 'Invalid or expired refresh token' }));
+        }
+    });
+});
+
+router.addRoute('POST', '/auth/forgot-password', authRateLimiter, (req, res) => {
+    let rawBody = '';
+
+    req.on('data', (chunk) => rawBody += chunk);
+
+    req.on('end', async () => {
+        const body = JSON.parse(rawBody || '{}');
+    
+        if (!body.email) {
+            res.writeHead(400);
+            res.end(JSON.stringify({ message: 'Email are required'}));
+            return;
+        };
+
+        try {
+            const result = await pool.query('SELECT * FROM users WHERE email = $1', [body.email]);
+            const user = result.rows[0];
+
+            if(!user) {
+                res.writeHead(400);
+                res.end(JSON.stringify({ message: 'Invalid email'}));
+                return;
+            }  
+
+            const newPassword = crypto.randomBytes(6).toString('base64');
+            const newHash = await bcrypt.hash(newPassword, 10);
+
+            await pool.query(
+                'UPDATE users SET password_hash = $1 WHERE email = $2',
+                [newHash, user.email]
+            ); 
+
+            await transporter.sendMail({
+                from: '"Support" <brain.weimann27@ethereal.email>',
+                to: body.email,
+                subject: 'Your temporary password',
+                html: `
+                    <p>We received a password recovery request.</p>
+                    <p>Your temporary password is: <strong>${newPassword}</strong></p>
+                    <p>Use it to log in and then change your password.</p>
+                `,
+            });
+
+            logger.info({ email: body.email }, 'Temporary password sent');
+            res.writeHead(200);
+            res.end(JSON.stringify({ message: 'Temporary password sent to your email' }));
+        } catch(err) {
+            logger.error(err, 'Could not change password');
+            res.writeHead(500);
+            res.end(JSON.stringify({ message: 'Could not cnage password'}));
         }
     });
 });
