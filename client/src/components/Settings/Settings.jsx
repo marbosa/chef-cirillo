@@ -1,5 +1,5 @@
-import { Children, useContext, useState } from 'react';
-import { DeleteAccount, DeleteData, Modal, NumericInput, Select } from '../index';
+import { useContext, useState } from 'react';
+import { DeleteAccount, Modal, NumericInput, Select } from '../index';
 import { ThemeContext, PomodoroContext } from '../../contexts/index';
 import styles from './Settings.module.css';
 import { useAlarm } from '../../hooks';
@@ -8,7 +8,6 @@ const Settings = () => {
     const { theme, setTheme } = useContext(ThemeContext);
     const { pomodoro, setPomodoro, autoStart, setAutoStart } = useContext(PomodoroContext);
     const { alarmSettings, setAlarmSettings } = useAlarm();
-
     const [modalConfig, setModalConfig] = useState({
         isOpen: false,
         title: '',
@@ -26,19 +25,11 @@ const Settings = () => {
         longBreakInterval: 4
     };
 
-    const deleteAccount = () => {
+    const deleteAccount = async () => {
         setModalConfig({
             title: 'Delete your account',
             isOpen: true,
             children: <DeleteAccount close={closeModal}/>
-        });
-    };
-
-    const deleteData = () => {
-        setModalConfig({
-            title: 'Delete your data',
-            isOpen: true,
-            children: <DeleteData close={closeModal}/>
         });
     };
 
@@ -178,10 +169,7 @@ const Settings = () => {
             <section className={styles['settings__section']}>
                 <h2 className={styles['settings__section-title']}>Account</h2>
                 
-                <div className={styles['settings__section-item']}>
-                    <span>Delete data</span>
-                    <button onClick={() => deleteData()}>Ok</button>
-                </div>
+
                 <div className={styles['settings__section-item']}>
                     <span>Delete account</span>
                     <button onClick={() => deleteAccount()}>Ok</button>

@@ -1,7 +1,6 @@
 export { default as ChangePassword } from './ChangePassword/ChangePassword';
 export { default as CreateAccount } from './CreateAccount/CreateAccount';
 export { default as DeleteAccount } from './DeleteAccount/DeleteAccount';
-export { default as DeleteData } from './DeleteData/DeleteData';
 export { default as Footer } from './Footer/Footer';
 export { default as ForgotPassword } from './ForgotPassword/ForgotPassword';
 export { default as Header } from './Header/Header';
