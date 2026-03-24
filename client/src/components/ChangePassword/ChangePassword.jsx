@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import styles from './ChangePassword.module.css';
+import { user } from '../../api/user';
 
 const ChangePassword = ({close}) => {
     const [formData, setFormData] = useState({
@@ -11,7 +12,8 @@ const ChangePassword = ({close}) => {
     const [errors, setErrors] = useState({
         password: '',
         newPassword: '',
-        confirmPassword: ''
+        confirmPassword: '',
+        server: ''
     });
 
     const [showFeedback, setShowFeedback] = useState(false);
@@ -19,15 +21,8 @@ const ChangePassword = ({close}) => {
     const changeData = (e) => {
         const {name, value} = e.target;
 
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-
-        setErrors(prev => ({
-            ...prev, 
-            [name]: ''
-        }));
+        setFormData(prev => ({ ...prev, [name]: value }));
+        setErrors(prev => ({ ...prev, [name]: '' }));
     };
 
     const validateForm = (data) => {
@@ -52,22 +47,27 @@ const ChangePassword = ({close}) => {
         return errors;
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         const newErrors = validateForm(formData);
-        setErrors(newErrors);
+        setErrors({...newErrors, server: ''});
 
         const hasErrors = Object.values(newErrors).some(err => err != '');
         if (hasErrors) return;
+
+        try { 
+            await user.changePassword(formData);
+        } catch(err) {
+            setErrors(prev => ({ ...prev, server: err.message }));
+            return;
+        }
 
         setShowFeedback(true);
 
         setTimeout(() => {
             close();
         }, 2000);
-
-        console.log(errors);
     };
 
     const cancelSubmit = () => {
@@ -80,7 +80,8 @@ const ChangePassword = ({close}) => {
         setErrors({ 
             password: '',
             confirmPassword: '',
-            newPassword: ''
+            newPassword: '',
+            server: ''
         });
 
         close();
@@ -149,6 +150,11 @@ const ChangePassword = ({close}) => {
                         Cancelar
                     </button>
                 </div>
+                { errors.server && (
+                    <div className={styles['form-feedback']}>
+                        <p>{errors.server}</p>
+                    </div>
+                )}                
                 { showFeedback && (
                     <div className={styles['form-feedback']}>
                         <p>Password changed successfully!</p>
