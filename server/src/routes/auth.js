@@ -29,7 +29,7 @@ router.addRoute('POST', '/auth/register', authRateLimiter, (req, res) => {
 
         try {
             const result = await pool.query(
-                'INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email', 
+                'INSERT INTO users (email, password_hash, last_login_at) VALUES ($1, $2, NOW()) RETURNING id, email', 
                 [user.email, user.passwordHash]
             );
             const newUser = result.rows[0];
@@ -46,6 +46,8 @@ router.addRoute('POST', '/auth/register', authRateLimiter, (req, res) => {
                 { expiresIn:  process.env.JWT_REFRESH_EXPIRES_IN }
             );
 
+            await pool.query('UPDATE users SET last_login_at = NOW() WHERE id = $1', [user.id]);
+            
             logger.info({ userId: newUser.id }, 'Account created successfully');
             res.writeHead(201);
             res.end(JSON.stringify({ message: 'Account created', accessToken, refreshToken }));
@@ -99,13 +101,16 @@ router.addRoute('POST', '/auth/login', authRateLimiter, (req, res) => {
                     { expiresIn:  process.env.JWT_REFRESH_EXPIRES_IN }
                 );
 
+                await pool.query('UPDATE users SET last_login_at = NOW() WHERE id = $1', [user.id]);
+
                 logger.info({ userId: user.id }, 'Login successful');
                 res.writeHead(200); 
                 res.end(JSON.stringify({ message: 'Login successful', accessToken, refreshToken })); 
             } else {
                 res.writeHead(400);
                 res.end(JSON.stringify({ message: 'Invalid credentials'}));
-            }
+                return;
+            }                    
         } catch(err) {
             logger.error(err, 'Could not login');
             res.writeHead(500);
