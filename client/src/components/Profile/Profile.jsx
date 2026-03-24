@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { ChangePassword, CreateAccount, LogIn, LogOut, Modal, Select } from './../../components';
 import styles from './Profile.module.css';
-
+import { useEffect } from 'react';
+import { user } from '../../api/user';
 
 const Profile = () => {
+    const [errInfo, setErrInfo] = useState(null);
+
     const [modalConfig, setModalConfig] = useState({
         isOpen: false,
         title: '',
@@ -59,23 +62,55 @@ const Profile = () => {
         });
     };
 
+    const [userInfo, setUserInfo] = useState({
+        email: '',
+        createdAt: '',
+        lastLoginAt: ''
+    }); 
+
+    const getUserInfo = async () => {
+        try {
+            const data = await user.me();
+            setUserInfo({
+                email: data.email,
+                createdAt: new Date(data.created_at).toLocaleDateString('pt-br'),
+                lastLoginAt: new Date(data.last_login_at).toLocaleDateString('pt-br'),
+            });
+            setErrInfo(null);
+        } catch(err) {
+            setErrInfo(err.message);
+        }
+    };
+
+    useEffect(() => {
+        getUserInfo();
+    }, []);
+
     return (
         <div className={styles['profile__container']}>
             <section className={styles['profile__section']}>
                 <h2 className={styles['profile__section-title']}>Account Details</h2>
                 
-                <div className={styles['profile__section-item']}>
-                    <span>Email</span>
-                    <span>chefCirilo@gmail.com</span>
-                </div>
-                <div className={styles['profile__section-item']}>
-                    <span>Account Created</span>
-                    <span>25/10/25</span>
-                </div>
-                <div className={styles['profile__section-item']}>
-                    <span>Last Login</span>
-                    <span>25/10/25</span>
-                </div>
+                { errInfo ? (
+                    <div className={styles['profile__section-item']}>
+                        <span>{errInfo}</span>
+                    </div>
+                ) : (
+                    <>
+                        <div className={styles['profile__section-item']}>
+                            <span>Email</span>
+                            <span>{userInfo.email}</span>
+                        </div>
+                        <div className={styles['profile__section-item']}>
+                            <span>Account Created</span>
+                            <span>{userInfo.createdAt}</span>
+                        </div>
+                        <div className={styles['profile__section-item']}>
+                            <span>Last Login</span>
+                            <span>{userInfo.lastLoginAt}</span>
+                        </div>
+                    </>
+                )}
                 <div className={styles['profile__section-item']}>
                     <span>Log Out</span>
                     <button onClick={() => logOut()}>Ok</button>
