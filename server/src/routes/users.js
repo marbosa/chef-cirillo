@@ -19,11 +19,11 @@ router.addRoute('GET', '/users/me', authenticate, async (req, res) => {
     } catch(err) {
         logger.error(err, 'Could not fetch user');
         res.writeHead(500);
-        res.end(JSON.stringify({ error: 'Could not fetch user'}));
+        res.end(JSON.stringify({ message: 'Could not fetch user' }));
     }
 });
 
-router.addRoute('DELETE', '/users/me', authenticate, async (req, res) => {
+router.addRoute('DELETE', '/users/me/delete', authenticate, async (req, res) => {
     const user = req.user;
 
     try {
@@ -37,55 +37,11 @@ router.addRoute('DELETE', '/users/me', authenticate, async (req, res) => {
     } catch(err) {
         logger.error(err, 'Could not delete user');
         res.writeHead(500);
-        res.end(JSON.stringify({ error: 'Could not delete user'}));
+        res.end(JSON.stringify({ message: 'Could not delete user' }));
     }    
 });
 
-router.addRoute('PATCH', '/users/me', authenticate, async (req, res) => {
-    const user = req.user;
-    let body = '';
-
-    req.on('data', (chunk) => { body += chunk; });
-
-    req.on('end', async () => {
-        try {
-            body = JSON.parse(body);
-
-            if(!body.newEmail) {
-                res.writeHead(400);
-                res.end(JSON.stringify({ error: 'New email are required'}));
-                return;
-            }
-
-            if(body.newEmail === user.email) {
-                res.writeHead(400);
-                res.end(JSON.stringify({ error: 'New email must be different' }));
-                return;
-            }
-
-            const result = await pool.query(
-                'UPDATE users SET email = $1 WHERE id = $2 RETURNING id, email',
-                [body.newEmail, user.id]
-            );
-
-            if (result.rows.length === 0) {
-                res.writeHead(404);
-                res.end(JSON.stringify({ error: 'User not found'}));
-                return;
-            }
-
-            logger.info({ userId: user.id, newEmail: body.newEmail }, 'Email changed successfully');
-            res.writeHead(200);
-            res.end(JSON.stringify({ message: 'Email changed'}));
-        } catch(err) {
-            logger.error(err, 'Could not change email');
-            res.writeHead(500);
-            res.end(JSON.stringify({ error: 'Could not change email'}));
-        }
-    });
-});
-
-router.addRoute('PATCH', '/users/me/password', authenticate, async (req, res) => {
+router.addRoute('PATCH', '/users/me/change-password', authenticate, async (req, res) => {
     const user = req.user;
     let rawBody = '';
 
@@ -97,7 +53,7 @@ router.addRoute('PATCH', '/users/me/password', authenticate, async (req, res) =>
 
             if(!body.newPassword || !body.password) {
                 res.writeHead(400);
-                res.end(JSON.stringify({ error: 'Passwords are required'}));
+                res.end(JSON.stringify({ message: 'Passwords are required' }));
                 return;
             }
 
@@ -108,7 +64,7 @@ router.addRoute('PATCH', '/users/me/password', authenticate, async (req, res) =>
 
             if (result.rows.length === 0) {
                 res.writeHead(404);
-                res.end(JSON.stringify({ error: 'User not found' }));
+                res.end(JSON.stringify({ message: 'User not found' }));
                 return;
             }
 
@@ -117,7 +73,7 @@ router.addRoute('PATCH', '/users/me/password', authenticate, async (req, res) =>
             const passwordMatch = await bcrypt.compare(body.password, password_hash);            
             if (!passwordMatch) {
                 res.writeHead(401);
-                res.end(JSON.stringify({ error: 'Incorrect password' }));
+                res.end(JSON.stringify({ message: 'Incorrect password' }));
                 return;
             }
 
@@ -125,7 +81,7 @@ router.addRoute('PATCH', '/users/me/password', authenticate, async (req, res) =>
 
             if (isSamePassword) {
                 res.writeHead(400);
-                res.end(JSON.stringify({ error: 'New password must be different' }));
+                res.end(JSON.stringify({ message: 'New password must be different' }));
                 return;
             }
 
@@ -142,7 +98,7 @@ router.addRoute('PATCH', '/users/me/password', authenticate, async (req, res) =>
         } catch(err) {
             logger.error(err, 'Invalid request');
             res.writeHead(500);
-            res.end(JSON.stringify({ error: 'Invalid request'}));
+            res.end(JSON.stringify({ message: 'Invalid request'}));
         }
     });
 });
