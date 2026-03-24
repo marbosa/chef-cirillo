@@ -1,11 +1,19 @@
 import { useState, useEffect } from 'react';
 import styles from './DeleteAccount.module.css';
+import { user } from '../../api/user';
 
 const DeleteAccount = ({ close }) => {
-    const [showFeedback, setShowFeedback] = useState(false);
+    const [showFeedback, setShowFeedback] = useState('');
     
-    const handleConfirm = () => {
-        setShowFeedback(true);
+    const handleConfirm = async () => {
+        try { 
+            await user.delete();
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            setShowFeedback('Account deleted successfully!');
+        } catch (err) {
+            setShowFeedback(err.message);
+        }
     };
 
     const handleCancel = () => {
@@ -39,7 +47,7 @@ const DeleteAccount = ({ close }) => {
 
             { showFeedback && (
                 <div className={styles['feedback']}>
-                    <p>Account deleted successfully!</p>
+                    <p>{ showFeedback }</p>
                 </div>
             )}
         </div>
