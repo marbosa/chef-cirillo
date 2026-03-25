@@ -8,7 +8,10 @@ router.addRoute('GET', '/tasks', authenticate, async (req, res) => {
     const user = req.user;
 
     try {
-        const result = await pool.query('SELECT * FROM tasks WHERE user_id = $1', [user.id]);
+        const result = await pool.query(
+            'SELECT * FROM tasks WHERE user_id = $1', 
+            [user.id]
+        );
         logger.info({ userId: user.id, count: result.rows.length }, 'Tasks fetched successfully');
         res.writeHead(200);
         res.end(JSON.stringify({ tasks: result.rows }));
@@ -50,14 +53,14 @@ router.addRoute('POST', '/tasks', authenticate, (req, res) => {
                 return;
             }
 
-            if (body.estimated_pomodoros !== undefined && (isNaN(body.estimated_pomodoros) || body.estimated_pomodoros < 1)) {
+            if (body.estimatedPomodoros !== undefined && (isNaN(body.estimatedPomodoros) || body.estimatedPomodoros < 1)) {
                 res.writeHead(400);
                 res.end(JSON.stringify({ error: 'estimated_pomodoros must be a positive number' }));
                 return;
             }
 
-            const estimatedPomodoros = body.estimated_pomodoros !== undefined 
-                ? Number(body.estimated_pomodoros) 
+            const estimatedPomodoros = body.estimatedPomodoros !== undefined 
+                ? Number(body.estimatedPomodoros) 
                 : 1;
 
             const result = await pool.query(
@@ -124,6 +127,16 @@ router.addRoute('PATCH', '/tasks/:id', authenticate, validateUUID, async (req, r
                 }
                 fields.push(`status = $${fields.length + 1}`);
                 values.push(body.status);
+            }
+            
+            if (body.completed_at !== undefined) {
+                if (body.completed_at !== null && isNaN(new Date(body.completed_at).getTime())) {
+                    res.writeHead(400);
+                    res.end(JSON.stringify({ error: 'Invalid date' }));
+                    return;
+                }
+                fields.push(`completed_at = $${fields.length + 1}`);
+                values.push(body.completed_at);
             }
 
             if (body.position !== undefined) {
